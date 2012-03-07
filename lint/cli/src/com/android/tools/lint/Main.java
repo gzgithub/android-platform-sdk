@@ -857,15 +857,6 @@ public class Main extends LintClient {
             Integer.toString(ERRNO_HELP),        "Lint help.",
             Integer.toString(ERRNO_INVALIDARGS), "Invalid command-line argument.",
         });
-
-        out.println("\nExit Status:");
-        printUsage(out, new String[] {
-                Integer.toString(ERRNO_ERRORS),      "Lint errors detected.",
-                Integer.toString(ERRNO_USAGE),       "Lint usage.",
-                Integer.toString(ERRNO_EXISTS),      "Cannot clobber existing file.",
-                Integer.toString(ERRNO_HELP),        "Lint help.",
-                Integer.toString(ERRNO_INVALIDARGS), "Invalid command-line argument.",
-        });
     }
 
     private static void printUsage(PrintStream out, String[] args) {
