@@ -63,7 +63,12 @@
             - New <system-image> package type, to store system images outside of <platform>s.
             - New <source> package type.
 
-         - v6 removed 'extra' packages. They are served only by the addon XML.
+
+         - v6 is used by the SDK Manager in Tools r18:
+            - <extra> packages are removed. They are served only by the addon XML.
+            - <platform>, <system-image>, <source>, <tool>, <platform-tool>, <doc>
+              and <sample> get a new optional field <beta-rc> which can be used to indicate
+              the package is a Beta Release Candidate and not a final release.
     -->
 
     <xsd:element name="sdk-repository" type="sdk:repositoryType" />
@@ -221,6 +226,7 @@
             <xsd:enumeration value="armeabi"     />
             <xsd:enumeration value="armeabi-v7a" />
             <xsd:enumeration value="x86"         />
+            <xsd:enumeration value="mips"        />
         </xsd:restriction>
     </xsd:simpleType>
 
