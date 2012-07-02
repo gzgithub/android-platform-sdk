@@ -23,12 +23,13 @@ if [ `basename "$PWD"` != "eclipse" ]; then
 fi
 
 # quote dots for regexps
+REALOLD="${REALOLD//./\.}"
 OLD="${OLD//./\.}\.qualifier"
 NEW="${NEW//./\.}\.qualifier"
 
 # Now find the same files but this time use sed to replace in-place with
 # the new pattern. Old files get backuped with the .old extension.
-grep -rl "$OLD" * | grep -E "\.xml$|\.MF$" | xargs -n 1 sed -i "" "s/$OLD/$NEW/g"
+grep -rl "$OLD" * | grep -E "\.xml$|\.MF$" | xargs -n 1 sed -i -e "s/$OLD/$NEW/g"
 
 echo "Remaining instances of $REALOLD"
 # do another grep for older version without the qualifier. We don't
