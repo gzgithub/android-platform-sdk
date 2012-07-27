@@ -285,6 +285,7 @@ symlinks
 synced
 syncs
 synthetically
+tabbed
 tad
 temp
 templated
