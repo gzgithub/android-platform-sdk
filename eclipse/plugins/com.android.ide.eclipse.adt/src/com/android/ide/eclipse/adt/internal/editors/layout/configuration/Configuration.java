@@ -23,6 +23,7 @@ import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.Capability;
+import com.android.ide.common.resources.ResourceFolder;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.DeviceConfigHelper;
@@ -36,8 +37,10 @@ import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.ide.eclipse.adt.AdtPlugin;
 import com.android.ide.eclipse.adt.internal.editors.layout.gle2.RenderService;
 import com.android.ide.eclipse.adt.internal.editors.manifest.ManifestInfo;
+import com.android.ide.eclipse.adt.internal.preferences.AdtPrefs;
 import com.android.ide.eclipse.adt.internal.resources.ResourceHelper;
 import com.android.ide.eclipse.adt.internal.resources.manager.ProjectResources;
+import com.android.ide.eclipse.adt.internal.resources.manager.ResourceManager;
 import com.android.ide.eclipse.adt.internal.sdk.Sdk;
 import com.android.resources.Density;
 import com.android.resources.NightMode;
@@ -63,6 +66,35 @@ import java.util.Map;
  * etc for use when rendering a layout.
  */
 public class Configuration {
+    /** The {@link FolderConfiguration} in change flags or override flags */
+    public static final int CFG_FOLDER       = 1 << 0;
+    /** The {@link Device} in change flags or override flags */
+    public static final int CFG_DEVICE       = 1 << 1;
+    /** The {@link State} in change flags or override flags */
+    public static final int CFG_DEVICE_STATE = 1 << 2;
+    /** The theme in change flags or override flags */
+    public static final int CFG_THEME        = 1 << 3;
+    /** The locale in change flags or override flags */
+    public static final int CFG_LOCALE       = 1 << 4;
+    /** The rendering {@link IAndroidTarget} in change flags or override flags */
+    public static final int CFG_TARGET       = 1 << 5;
+    /** The {@link NightMode} in change flags or override flags */
+    public static final int CFG_NIGHT_MODE   = 1 << 6;
+    /** The {@link UiMode} in change flags or override flags */
+    public static final int CFG_UI_MODE      = 1 << 7;
+    /** The {@link UiMode} in change flags or override flags */
+    public static final int CFG_ACTIVITY     = 1 << 8;
+
+    /** References all attributes */
+    public static final int MASK_ALL = 0xFFFF;
+
+    /** Attributes which affect which best-layout-file selection */
+    public static final int MASK_FILE_ATTRS =
+            CFG_DEVICE|CFG_DEVICE_STATE|CFG_LOCALE|CFG_TARGET|CFG_NIGHT_MODE|CFG_UI_MODE;
+
+    /** Attributes which affect rendering appearance */
+    public static final int MASK_RENDERING = MASK_FILE_ATTRS|CFG_THEME;
+
     /**
      * Setting name for project-wide setting controlling rendering target and locale which
      * is shared for all files
@@ -76,7 +108,7 @@ public class Configuration {
     private final static String SEP_LOCALE = "-";                  //$NON-NLS-1$
 
     @NonNull
-    protected final ConfigurationChooser mConfigChooser;
+    protected ConfigurationChooser mConfigChooser;
 
     /** The {@link FolderConfiguration} representing the state of the UI controls */
     @NonNull
@@ -134,6 +166,30 @@ public class Configuration {
     }
 
     /**
+     * Sets the associated configuration chooser
+     *
+     * @param chooser the chooser
+     */
+    void setChooser(@NonNull ConfigurationChooser chooser) {
+        // TODO: We should get rid of the binding between configurations
+        // and configuration choosers. This is currently needed because
+        // the choosers contain vital data such as the set of available
+        // rendering targets, the set of available locales etc, which
+        // also doesn't belong inside the configuration but is needed by it.
+        mConfigChooser = chooser;
+    }
+
+    /**
+     * Gets the associated configuration chooser
+     *
+     * @return the chooser
+     */
+    @NonNull
+    ConfigurationChooser getChooser() {
+        return mConfigChooser;
+    }
+
+    /**
      * Creates a new {@linkplain Configuration}
      *
      * @param chooser the associated chooser
@@ -145,30 +201,28 @@ public class Configuration {
     }
 
     /**
-     * Creates a configuration
-     * @param chooser the configuration chooser with device info, render target info, etc
+     * Creates a configuration suitable for the given file
+     *
+     * @param base the base configuration to base the file configuration off of
      * @param file the file to look up a configuration for
      * @return a suitable configuration
      */
     @NonNull
-    public static Configuration create(@NonNull ConfigurationChooser chooser,
+    public static Configuration create(
+            @NonNull Configuration base,
             @NonNull IFile file) {
-        Configuration configuration = copy(chooser.getConfiguration());
-        // Ideally, we'd pick the configuration the user has most recently configured
-        // for the outer layout. But this doesn't always work as expected, so for now
-        // always compute the best fit.
-        //String data = AdtPlugin.getFileProperty(file, NAME_CONFIG_STATE);
-        //if (data != null) {
-        //    configuration.initialize(data);
-        //} else {
-            ProjectResources resources = chooser.getResources();
-            ConfigurationMatcher matcher = new ConfigurationMatcher(chooser, configuration, file,
-                    resources, false);
-            if (configuration.mEditedConfig == null) {
-                configuration.mEditedConfig = new FolderConfiguration();
-            }
-            matcher.adaptConfigSelection(true /*needBestMatch*/);
-        //}
+        Configuration configuration = copy(base);
+        ConfigurationChooser chooser = base.getChooser();
+        ProjectResources resources = chooser.getResources();
+        ConfigurationMatcher matcher = new ConfigurationMatcher(chooser, configuration, file,
+                resources, false);
+
+        ResourceFolder resFolder = ResourceManager.getInstance().getResourceFolder(file);
+        configuration.mEditedConfig = new FolderConfiguration();
+        configuration.mEditedConfig.set(resFolder.getConfiguration());
+
+        matcher.adaptConfigSelection(true /*needBestMatch*/);
+        configuration.syncFolderConfig();
 
         return configuration;
     }
@@ -779,24 +833,31 @@ public class Configuration {
                     }
                     locale = Locale.create(language, region);
 
-                    target = stringToTarget(chooser, values[1]);
-
-                    // See if we should "correct" the rendering target to a better version.
-                    // If you're using a pre-release version of the render target, and a
-                    // final release is available and installed, we should switch to that
-                    // one instead.
-                    if (target != null) {
-                        AndroidVersion version = target.getVersion();
-                        List<IAndroidTarget> targetList = chooser.getTargetList();
-                        if (version.getCodename() != null && targetList != null) {
-                            int targetApiLevel = version.getApiLevel() + 1;
-                            for (IAndroidTarget t : targetList) {
-                                if (t.getVersion().getApiLevel() == targetApiLevel
-                                        && t.isPlatform()) {
-                                    target = t;
-                                    break;
+                    if (AdtPrefs.getPrefs().isAutoPickRenderTarget()) {
+                        target = ConfigurationMatcher.findDefaultRenderTarget(chooser);
+                    } else {
+                        String targetString = values[1];
+                        target = stringToTarget(chooser, targetString);
+                        // See if we should "correct" the rendering target to a
+                        // better version. If you're using a pre-release version
+                        // of the render target, and a final release is
+                        // available and installed, we should switch to that
+                        // one instead.
+                        if (target != null) {
+                            AndroidVersion version = target.getVersion();
+                            List<IAndroidTarget> targetList = chooser.getTargetList();
+                            if (version.getCodename() != null && targetList != null) {
+                                int targetApiLevel = version.getApiLevel() + 1;
+                                for (IAndroidTarget t : targetList) {
+                                    if (t.getVersion().getApiLevel() == targetApiLevel
+                                            && t.isPlatform()) {
+                                        target = t;
+                                        break;
+                                    }
                                 }
                             }
+                        } else {
+                            target = ConfigurationMatcher.findDefaultRenderTarget(chooser);
                         }
                     }
                 }
@@ -804,7 +865,7 @@ public class Configuration {
                 return Pair.of(locale, target);
             }
 
-            return Pair.of(Locale.ANY, ConfigurationMatcher.findDefaultRenderTarget(project));
+            return Pair.of(Locale.ANY, ConfigurationMatcher.findDefaultRenderTarget(chooser));
         } catch (CoreException e) {
             AdtPlugin.log(e, null);
         }
@@ -823,7 +884,7 @@ public class Configuration {
         }
         try {
             // Generate a persistent string from locale+target
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder(32);
             Locale locale = getLocale();
             if (locale != null) {
                 // locale[0]/[1] can be null sometimes when starting Eclipse
