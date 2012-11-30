@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -210,7 +211,7 @@ public abstract class SourceProcessor {
      * Returns the extension of the source files handled by this processor.
      * @return
      */
-    protected abstract String getExtension();
+    protected abstract Set<String> getExtensions();
 
     protected abstract String getSavePropertyName();
 
@@ -219,7 +220,7 @@ public abstract class SourceProcessor {
      *
      */
     public final int compileFiles(BaseBuilder builder,
-            IProject project, IAndroidTarget projectTarget, int minSdkVersion,
+            IProject project, IAndroidTarget projectTarget,
             List<IPath> sourceFolders, List<File> libraryProjectsOut, IProgressMonitor monitor)
             throws CoreException {
 
@@ -241,7 +242,7 @@ public abstract class SourceProcessor {
         // list of files that have failed compilation.
         List<IFile> stillNeedCompilation = new ArrayList<IFile>();
 
-        doCompileFiles(mToCompile, builder, project, projectTarget, minSdkVersion, sourceFolders,
+        doCompileFiles(mToCompile, builder, project, projectTarget, sourceFolders,
                 stillNeedCompilation, libraryProjectsOut, monitor);
 
         mToCompile.clear();
@@ -273,7 +274,7 @@ public abstract class SourceProcessor {
 
     protected abstract void doCompileFiles(
             List<IFile> filesToCompile, BaseBuilder builder,
-            IProject project, IAndroidTarget projectTarget, int targetApi,
+            IProject project, IAndroidTarget projectTarget,
             List<IPath> sourceFolders, List<IFile> notCompiledOut,
             List<File> libraryProjectsOut, IProgressMonitor monitor) throws CoreException;
 
@@ -369,7 +370,8 @@ public abstract class SourceProcessor {
                        // if this a file, check that the file actually exist
                        // and that it's the type of of file that's used in this processor
                        if (r.exists() &&
-                               getExtension().equalsIgnoreCase(r.getFileExtension())) {
+                               getExtensions().contains(
+                                       r.getFileExtension().toLowerCase(Locale.US))) {
                            mFiles.put((IFile) r, new SourceFileData((IFile) r));
                        }
                        break;
