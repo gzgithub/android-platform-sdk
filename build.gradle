@@ -10,7 +10,7 @@ subprojects {
     }
 
     project.ext {
-        baseVersion = '21.0'
+        baseVersion = '21.0.1'
     }
 
     // set all java compilation to use UTF-8 encoding.
