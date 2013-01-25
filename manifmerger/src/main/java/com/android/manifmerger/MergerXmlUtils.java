@@ -501,16 +501,21 @@ class MergerXmlUtils {
         return new Comparator<Attr>() {
             @Override
             public int compare(Attr a1, Attr a2) {
-                String s1 = a1 == null ? "" : a1.getNodeName();           //$NON-NLS-1$
-                String s2 = a2 == null ? "" : a2.getNodeValue();          //$NON-NLS-1$
+                String s1 = a1 == null ? "" : a1.getNodeName();         //$NON-NLS-1$
+                String s2 = a2 == null ? "" : a2.getNodeValue();        //$NON-NLS-1$
 
-                int prio1 = s1.equals("name") ? 0 : 1;                    //$NON-NLS-1$
-                int prio2 = s2.equals("name") ? 0 : 1;                    //$NON-NLS-1$
-                if (prio1 == 0 || prio2 == 0) {
-                    return prio1 - prio2;
+                boolean name1 = s1.equals("name");                      //$NON-NLS-1$
+                boolean name2 = s2.equals("name");                      //$NON-NLS-1$
+
+                if (name1 && name2) {
+                    return 0;
+                } else if (name1) {
+                    return -1;  // name is always first
+                } else if (name2) {
+                    return  1;  // name is always first
+                } else {
+                    return s1.compareTo(s2);
                 }
-
-                return s1.compareTo(s2);
             }
         };
     }
