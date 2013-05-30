@@ -2,7 +2,6 @@
 
 OLD="$1"
 NEW="$2"
-REALOLD="$1"
 
 # sanity check in input args
 if [ -z "$OLD" ] || [ -z "$NEW" ]; then
@@ -22,17 +21,41 @@ if [ `basename "$PWD"` != "eclipse" ]; then
     exit 1
 fi
 
-# quote dots for regexps
-OLD="${OLD//./\.}\.qualifier"
-NEW="${NEW//./\.}\.qualifier"
+function do_replace() {
+  IS_MAC=""
+  if [[ $(uname) == "Darwin" ]]; then IS_MAC="1" ; fi
 
-# Now find the same files but this time use sed to replace in-place with
-# the new pattern. Old files get backuped with the .old extension.
-grep -rl "$OLD" * | grep -E "\.xml$|\.MF$" | xargs -n 1 sed -i "" "s/$OLD/$NEW/g"
+  for i in $*; do
+    if [[ -f "$i" ]]; then
+      echo "+ Updating: $i"
+      if [[ $IS_MAC ]]; then
+        sed -i "" -e "s/$SED_OLD/$SED_NEW/g" "$i"
+      else
+        sed -i -e "s/$SED_OLD/$SED_NEW/g" "$i"
+      fi
+    else
+      echo "- Ignoring: $i"
+    fi
+  done
+}
 
-echo "Remaining instances of $REALOLD"
+# Files that use the ".qualifier" suffix
+SED_OLD="${OLD//./\.}\.qualifier"
+SED_NEW="${NEW//./\.}\.qualifier"
+do_replace $(grep -rl "$SED_OLD" * | grep -E "\.xml$|\.MF$|\.product$")
+
+# Specific files that do not use the .qualifier suffix.
+# We hand-pick them instead of using a generic regexp, to avoid bogus replacements.
+SED_OLD="${OLD//./\.}"
+SED_NEW="${NEW//./\.}"
+do_replace \
+  plugins/com.android.ide.eclipse.monitor/monitor.product \
+  plugins/com.android.ide.eclipse.monitor/plugin.properties
+
+echo
+echo "Remaining instances of $OLD"
 # do another grep for older version without the qualifier. We don't
 # want to replace those automatically as it could be something else.
 # Printing out occurence helps find ones to update manually.
-grep -r "$REALOLD" *
+grep -r "$OLD" *
 
