@@ -7,7 +7,7 @@ buildscript {
 </#if>
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.4'
+        classpath 'com.android.tools.build:gradle:0.4.+'
     }
 }
 apply plugin: 'android'
