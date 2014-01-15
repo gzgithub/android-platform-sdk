@@ -120,7 +120,7 @@ function build_adt_ide() {
     D="$PROG_DIR"
     cd "$D/../../../" && echo "Switched to directory $PWD"
 
-    IDE_SCRIPTS="sdk/eclipse/scripts/build_ide.sh tools/idea/build_ide_ext.sh"
+    IDE_SCRIPTS="sdk/eclipse/scripts/build_ide.sh"
     for sc in $IDE_SCRIPTS; do
       if [[ -x $sc ]]; then
         echo "RUNNING $sc from $PWD"
