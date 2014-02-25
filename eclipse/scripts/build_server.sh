@@ -24,7 +24,7 @@ DEST_DIR=""
 BUILD_NUMBER=""
 CREATE_ZIP="1"
 INTERNAL_BUILD=""
-ADT_PREVIEW="preview"   # "preview" for preview builds, "" for final release builds.
+ADT_PREVIEW=""   # "preview" for preview builds, "" for final release builds.
 
 function get_params() {
   # parse input parameters
