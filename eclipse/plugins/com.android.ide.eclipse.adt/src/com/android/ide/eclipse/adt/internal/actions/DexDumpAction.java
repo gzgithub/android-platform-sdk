@@ -126,7 +126,7 @@ public class DexDumpAction implements IObjectActionDelegate {
                 return Status.OK_STATUS;
             }
 
-            String sdkOsPath = current.getSdkLocation();
+            String sdkOsPath = current.getSdkOsLocation();
             File dexDumpFile = new File(new File(sdkOsPath, SdkConstants.FD_PLATFORM_TOOLS),
                                         SdkConstants.FN_DEXDUMP);
 
