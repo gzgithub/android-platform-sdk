@@ -23,6 +23,7 @@
 #include <GLcommon/TextureUtils.h>
 #include <GLcommon/FramebufferData.h>
 #include <strings.h>
+#include <string.h>
 
 //decleration
 static void convertFixedDirectLoop(const char* dataIn,unsigned int strideIn,void* dataOut,unsigned int nBytes,unsigned int strideOut,int attribSize);
@@ -84,7 +85,7 @@ void GLESConversionArrays::operator++(){
 }
 
 GLDispatch     GLEScontext::s_glDispatch;
-android::Mutex GLEScontext::s_lock;
+emugl::Mutex   GLEScontext::s_lock;
 std::string*   GLEScontext::s_glExtensions= NULL;
 std::string    GLEScontext::s_glVendor;
 std::string    GLEScontext::s_glRenderer;
@@ -191,7 +192,7 @@ GLEScontext::~GLEScontext() {
 const GLvoid* GLEScontext::setPointer(GLenum arrType,GLint size,GLenum type,GLsizei stride,const GLvoid* data,bool normalize) {
     GLuint bufferName = m_arrayBuffer;
     if(bufferName) {
-        unsigned int offset = ToTargetCompatibleHandle((uintptr_t)data);
+        unsigned int offset = SafeUIntFromPointer(data);
         GLESbuffer* vbo = static_cast<GLESbuffer*>(m_shareGroup->getObjectData(VERTEXBUFFER,bufferName).Ptr());
         m_map[arrType]->setBuffer(size,type,stride,vbo,bufferName,offset,normalize);
         return  static_cast<const unsigned char*>(vbo->getData()) +  offset;
@@ -329,10 +330,8 @@ void GLEScontext::convertDirectVBO(GLESConversionArrays& cArrs,GLint first,GLsiz
     RangeList ranges;
     RangeList conversions;
     GLushort* indices = NULL;
-    GLenum type    = p->getType();
     int attribSize = p->getSize();
     int stride = p->getStride()?p->getStride():sizeof(GLfixed)*attribSize;
-    unsigned int size = p->getStride()?p->getStride()*count:attribSize*count*sizeof(GLfixed);
     char* data = (char*)p->getBufferData() + (first*stride);
 
     if(p->bufferNeedConversion()) {
@@ -388,7 +387,6 @@ void GLEScontext::convertIndirectVBO(GLESConversionArrays& cArrs,GLsizei count,G
     RangeList ranges;
     RangeList conversions;
     GLushort* conversionIndices = NULL;
-    GLenum type    = p->getType();
     int attribSize = p->getSize();
     int stride = p->getStride()?p->getStride():sizeof(GLfixed)*attribSize;
     char* data = static_cast<char*>(p->getBufferData());
@@ -678,6 +676,10 @@ bool GLEScontext::glGetIntegerv(GLenum pname, GLint *params)
 
         case GL_IMPLEMENTATION_COLOR_READ_FORMAT_OES:
             *params = GL_RGBA;
+            break;
+
+        case GL_MAX_TEXTURE_SIZE:
+            *params = getMaxTexSize();
             break;
         default:
             return false;

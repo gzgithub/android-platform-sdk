@@ -593,7 +593,7 @@ GL_APICALL void  GL_APIENTRY glDrawElements(GLenum mode, GLsizei count, GLenum t
     const GLvoid* indices = elementsIndices;
     if(ctx->isBindedBuffer(GL_ELEMENT_ARRAY_BUFFER)) { // if vbo is binded take the indices from the vbo
         const unsigned char* buf = static_cast<unsigned char *>(ctx->getBindedBuffer(GL_ELEMENT_ARRAY_BUFFER));
-        indices = buf+reinterpret_cast<uintptr_t>(elementsIndices);
+        indices = buf + SafeUIntFromPointer(elementsIndices);
     }
 
     GLESConversionArrays tmpArrs;
@@ -867,7 +867,6 @@ GL_APICALL void  GL_APIENTRY glGetBufferParameteriv(GLenum target, GLenum pname,
     GET_CTX();
     SET_ERROR_IF(!(GLESv2Validate::bufferTarget(target) && GLESv2Validate::bufferParam(pname)),GL_INVALID_ENUM);
     SET_ERROR_IF(!ctx->isBindedBuffer(target),GL_INVALID_OPERATION);
-    bool ret = true;
     switch(pname) {
     case GL_BUFFER_SIZE:
         ctx->getBufferSize(target,params);
@@ -941,11 +940,19 @@ GL_APICALL void  GL_APIENTRY glGetFloatv(GLenum pname, GLfloat* params){
 }
 
 GL_APICALL void  GL_APIENTRY glGetIntegerv(GLenum pname, GLint* params){
+    int destroyCtx = 0;
     GET_CTX();
 
+    if (!ctx) {
+        ctx = createGLESContext();
+        if (ctx)
+            destroyCtx = 1;
+    }
     if (ctx->glGetIntegerv(pname,params))
     {
-        return;
+        if (destroyCtx)
+            deleteGLESContext(ctx);
+            return;
     }
   
     bool es2 = ctx->getCaps()->GL_ARB_ES2_COMPATIBILITY;
@@ -1031,6 +1038,8 @@ GL_APICALL void  GL_APIENTRY glGetIntegerv(GLenum pname, GLint* params){
     default:
         ctx->dispatcher().glGetIntegerv(pname,params);
     }
+    if (destroyCtx)
+            deleteGLESContext(ctx);
 }
 
 GL_APICALL void  GL_APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenum pname, GLint* params){
@@ -2006,7 +2015,7 @@ GL_APICALL void GL_APIENTRY glEGLImageTargetTexture2DOES(GLenum target, GLeglIma
 {
     GET_CTX();
     SET_ERROR_IF(!GLESv2Validate::textureTargetLimited(target),GL_INVALID_ENUM);
-    unsigned int imagehndl = ToTargetCompatibleHandle((uintptr_t)image);
+    unsigned int imagehndl = SafeUIntFromPointer(image);
     EglImage *img = s_eglIface->eglAttachEGLImage(imagehndl);
     if (img) {
         // Create the texture object in the underlying EGL implementation,
@@ -2042,7 +2051,7 @@ GL_APICALL void GL_APIENTRY glEGLImageTargetRenderbufferStorageOES(GLenum target
 {
     GET_CTX();
     SET_ERROR_IF(target != GL_RENDERBUFFER_OES,GL_INVALID_ENUM);
-    unsigned int imagehndl = ToTargetCompatibleHandle((uintptr_t)image);
+    unsigned int imagehndl = SafeUIntFromPointer(image);
     EglImage *img = s_eglIface->eglAttachEGLImage(imagehndl);
     SET_ERROR_IF(!img,GL_INVALID_VALUE);
     SET_ERROR_IF(!ctx->shareGroup().Ptr(),GL_INVALID_OPERATION);

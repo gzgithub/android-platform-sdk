@@ -15,6 +15,7 @@
 */
 
 #include "ShaderParser.h"
+#include <stdlib.h>
 #include <string.h>
 
 ShaderParser::ShaderParser():ObjectData(SHADER_DATA),
@@ -223,8 +224,7 @@ void ShaderParser::parseOmitPrecision(){
         SEMICOLON
     } statementState = PRECISION;
     const char *precision = NULL;
-    const char *delimiter = NULL;
-    
+
     enum {
         PARSE_NONE,
         PARSE_IN_C_COMMENT,

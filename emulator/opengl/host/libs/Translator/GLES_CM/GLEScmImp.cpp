@@ -582,7 +582,7 @@ GL_API void GL_APIENTRY  glDrawElements( GLenum mode, GLsizei count, GLenum type
     GLESConversionArrays tmpArrs;
     if(ctx->isBindedBuffer(GL_ELEMENT_ARRAY_BUFFER)) { // if vbo is binded take the indices from the vbo
         const unsigned char* buf = static_cast<unsigned char *>(ctx->getBindedBuffer(GL_ELEMENT_ARRAY_BUFFER));
-        indices = buf+reinterpret_cast<uintptr_t>(elementsIndices);
+        indices = buf + SafeUIntFromPointer(elementsIndices);
     }
 
     ctx->setupArraysPointers(tmpArrs,0,count,type,indices,false);
@@ -699,8 +699,6 @@ GL_API void GL_APIENTRY  glGetBooleanv( GLenum pname, GLboolean *params) {
         return;
     }
 
-    GLint i;
-
     switch(pname)
     {
     case GL_FRAMEBUFFER_BINDING_OES:
@@ -745,7 +743,6 @@ GL_API void GL_APIENTRY  glGetBufferParameteriv( GLenum target, GLenum pname, GL
     GET_CTX()
     SET_ERROR_IF(!(GLEScmValidate::bufferTarget(target) && GLEScmValidate::bufferParam(pname)),GL_INVALID_ENUM);
     SET_ERROR_IF(!ctx->isBindedBuffer(target),GL_INVALID_OPERATION);
-    bool ret = true;
     switch(pname) {
     case GL_BUFFER_SIZE:
         ctx->getBufferSize(target,params);
@@ -787,7 +784,6 @@ GL_API void GL_APIENTRY  glGetFixedv( GLenum pname, GLfixed *params) {
 
     size_t nParams = glParamSize(pname);
     GLfloat fParams[16];
-    GLint i;
 
     switch(pname)
     {
@@ -994,9 +990,9 @@ GL_API void GL_APIENTRY  glGetPointerv( GLenum pname, void **params) {
     if(p) {
         if(p->isVBO())
         {
-            *params = (void*)(p->getBufferOffset());
+            *params = SafePointerFromUInt(p->getBufferOffset());
         }else{
-            *params = const_cast<void *>( p->getArrayData());
+            *params = const_cast<void *>(p->getArrayData());
         }
     } else {
         ctx->setGLerror(GL_INVALID_ENUM);
@@ -1652,7 +1648,7 @@ GL_API void GL_APIENTRY glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOE
 {
     GET_CTX();
     SET_ERROR_IF(!GLEScmValidate::textureTargetLimited(target),GL_INVALID_ENUM);
-    unsigned int imagehndl = ToTargetCompatibleHandle((uintptr_t)image);
+    unsigned int imagehndl = SafeUIntFromPointer(image);
     EglImage *img = s_eglIface->eglAttachEGLImage(imagehndl);
     if (img) {
         // Create the texture object in the underlying EGL implementation,
@@ -1688,7 +1684,7 @@ GL_API void GL_APIENTRY glEGLImageTargetRenderbufferStorageOES(GLenum target, GL
 {
     GET_CTX();
     SET_ERROR_IF(target != GL_RENDERBUFFER_OES,GL_INVALID_ENUM);
-    unsigned int imagehndl = ToTargetCompatibleHandle((uintptr_t)image);
+    unsigned int imagehndl = SafeUIntFromPointer(image);
     EglImage *img = s_eglIface->eglAttachEGLImage(imagehndl);
     SET_ERROR_IF(!img,GL_INVALID_VALUE);
     SET_ERROR_IF(!ctx->shareGroup().Ptr(),GL_INVALID_OPERATION);
@@ -2234,10 +2230,12 @@ void glDrawTexOES (T x, T y, T z, T width, T height) {
     GLint viewport[4];
     z = (z>1 ? 1 : (z<0 ?  0 : z));
 
-    T     vertices[4*3] = {x , y, z,
-                             x , y+height, z,
-                             x+width, y+height, z,
-                             x+width, y, z};
+    T vertices[4*3] = {
+        x , y, z,
+        x , static_cast<T>(y+height), z,
+        static_cast<T>(x+width), static_cast<T>(y+height), z,
+        static_cast<T>(x+width), y, z
+    };
     GLfloat texels[ctx->getMaxTexUnits()][4*2];
     memset((void*)texels, 0, ctx->getMaxTexUnits()*4*2*sizeof(GLfloat));
 
