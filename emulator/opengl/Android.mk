@@ -16,13 +16,31 @@ EMUGL_PATH := $(call my-dir)
 # This is always set to a module's LOCAL_C_INCLUDES
 # See the definition of emugl-begin-module in common.mk
 #
-EMUGL_COMMON_INCLUDES := $(EMUGL_PATH)/host/include/libOpenglRender
+EMUGL_COMMON_INCLUDES := \
+    $(EMUGL_PATH)/host/include/libOpenglRender \
+    $(EMUGL_PATH)/shared
+
+ifeq ($(BUILD_STANDALONE_EMULATOR),true)
+EMUGL_COMMON_INCLUDES := $(EMUGL_PATH)/host/libs/Translator/include
+endif
+
+ifeq ($(BUILD_STANDALONE_EMULATOR),true)
+EMUGL_BUILD_64BITS := $(strip $(EMULATOR_BUILD_64BITS))
+else
+EMUGL_BUILD_64BITS := true
+endif
 
 # common cflags used by several modules
 # This is always set to a module's LOCAL_CFLAGS
 # See the definition of emugl-begin-module in common.mk
 #
 EMUGL_COMMON_CFLAGS := -DWITH_GLES2
+
+# Define EMUGL_BUILD_DEBUG=1 in your environment to build a
+# debug version of the EmuGL host binaries.
+ifneq (,$(strip $(EMUGL_BUILD_DEBUG)))
+EMUGL_COMMON_CFLAGS += -O0 -g -DEMUGL_DEBUG=1
+endif
 
 # Uncomment the following line if you want to enable debug traces
 # in the GLES emulation libraries.
@@ -53,6 +71,11 @@ include $(EMUGL_PATH)/common.mk
 # source files (see all emugl-gen-decoder/encoder in common.mk)
 #
 include $(EMUGL_PATH)/host/tools/emugen/Android.mk
+
+# Required by our units test.
+include $(EMUGL_PATH)/googletest.mk
+
+include $(EMUGL_PATH)/shared/emugl/common/Android.mk
 include $(EMUGL_PATH)/shared/OpenglOsUtils/Android.mk
 include $(EMUGL_PATH)/shared/OpenglCodecCommon/Android.mk
 
@@ -65,6 +88,9 @@ include $(EMUGL_PATH)/host/libs/Translator/GLcommon/Android.mk
 include $(EMUGL_PATH)/host/libs/Translator/GLES_CM/Android.mk
 include $(EMUGL_PATH)/host/libs/Translator/GLES_V2/Android.mk
 include $(EMUGL_PATH)/host/libs/Translator/EGL/Android.mk
+
+# Required to declare SDL-related flags for some host tests.
+include $(EMUGL_PATH)/sdl.mk
 
 # Host shared libraries
 include $(EMUGL_PATH)/host/libs/libOpenglRender/Android.mk

@@ -313,20 +313,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 int main(int argc, char **argv)
 #endif
 {
-    GLuint  ui32Vbo = 0; // Vertex buffer object handle
-    GLuint  ui32IndexVbo;
-    GLuint  ui32Texture;
-
-    int nframes = 100;
-    bool immidateMode     = false;
-    bool useIndices       = false;
-    bool useTexture       = true;
-    bool useCompTexture   = false;
-    bool useFixed         = true;
-    bool usePoints        = false;
-    bool useCopy          = false;
-    bool useSubCopy       = false;
-
 #ifdef _WIN32
     int argc;
     char **argv = parseCmdLine(lpCmdLine, &argc);
@@ -372,7 +358,7 @@ int main(int argc, char **argv)
     #ifdef _WIN32
         HWND   windowId = NULL;
     #elif __linux__
-        Window windowId = NULL;
+        Window windowId = 0;
     #elif __APPLE__
         void* windowId  = NULL;
     #endif

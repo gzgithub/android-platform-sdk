@@ -20,13 +20,14 @@
 #include <map>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
-#include <utils/threads.h>
-#include <GLcommon/SmartPtr.h>
+#include "emugl/common/mutex.h"
+#include "emugl/common/smart_ptr.h"
 
 #include "EglConfig.h"
 #include "EglContext.h"
 #include "EglSurface.h"
 #include "EglWindowSurface.h"
+
 
 
 
@@ -81,7 +82,7 @@ private:
    SurfacesHndlMap                m_surfaces;
    GlobalNameSpace                m_globalNameSpace;
    ObjectNameManager              *m_manager[MAX_GLES_VERSION];
-   android::Mutex                 m_lock;
+   emugl::Mutex                   m_lock;
    ImagesHndlMap                  m_eglImages;
    unsigned int                   m_nextEglImageId;
    EGLNativeContextType           m_globalSharedContext;

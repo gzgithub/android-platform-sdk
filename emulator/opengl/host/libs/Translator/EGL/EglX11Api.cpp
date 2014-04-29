@@ -14,10 +14,11 @@
 * limitations under the License.
 */
 #include "EglOsApi.h"
+#include "emugl/common/mutex.h"
+
 #include <string.h>
 #include <X11/Xlib.h>
 #include <GL/glx.h>
-#include <utils/threads.h>
 
 
 class ErrorHandler{
@@ -29,7 +30,7 @@ int getLastError(){ return s_lastErrorCode;};
 private:
 static int s_lastErrorCode;
 int (*m_oldErrorHandler) (Display *, XErrorEvent *);
-static android::Mutex s_lock;
+static emugl::Mutex s_lock;
 static int errorHandlerProc(EGLNativeDisplayType dpy,XErrorEvent* event);
 
 };
@@ -50,17 +51,17 @@ private:
 };
 
 int ErrorHandler::s_lastErrorCode = 0;
-android::Mutex ErrorHandler::s_lock;
+emugl::Mutex ErrorHandler::s_lock;
 
 ErrorHandler::ErrorHandler(EGLNativeDisplayType dpy){
-   android::Mutex::Autolock mutex(s_lock);
+   emugl::Mutex::AutoLock mutex(s_lock);
    XSync(dpy,False);
    s_lastErrorCode = 0;
    m_oldErrorHandler = XSetErrorHandler(errorHandlerProc);
 }
 
 ErrorHandler::~ErrorHandler(){
-   android::Mutex::Autolock mutex(s_lock);
+   emugl::Mutex::AutoLock mutex(s_lock);
    XSetErrorHandler(m_oldErrorHandler);
    s_lastErrorCode = 0;
 }
@@ -71,7 +72,7 @@ int ErrorHandler::errorHandlerProc(EGLNativeDisplayType dpy,XErrorEvent* event){
 }
 
 #define IS_SUCCESS(a) \
-        if(a != Success) return false;
+        if(a != Success) return 0;
 
 namespace EglOS {
 
@@ -193,7 +194,7 @@ bool validNativePixmap(EGLNativeDisplayType dpy,EGLNativeSurfaceType pix) {
    int tmp;
    unsigned int utmp;
    ErrorHandler handler(dpy);
-   if(!XGetGeometry(dpy,pix ? pix->srfc() : NULL,&root,&tmp,&tmp,&utmp,&utmp,&utmp,&utmp)) return false;
+   if(!XGetGeometry(dpy,pix ? pix->srfc() : 0,&root,&tmp,&tmp,&utmp,&utmp,&utmp,&utmp)) return false;
    return handler.getLastError() == 0;
 }
 
@@ -260,7 +261,7 @@ bool makeCurrent(EGLNativeDisplayType dpy,EglSurface* read,EglSurface* draw,EGLN
     bool retval = false;
     if (!ctx && !read && !draw) {
         // unbind
-        retval = glXMakeContextCurrent(dpy, NULL, NULL, NULL);
+        retval = glXMakeContextCurrent(dpy, 0, 0, NULL);
     }
     else if (ctx && read && draw) {
         retval = glXMakeContextCurrent(dpy,draw->native()->srfc(),read->native()->srfc(),ctx);

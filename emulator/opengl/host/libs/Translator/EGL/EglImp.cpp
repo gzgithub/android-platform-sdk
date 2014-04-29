@@ -50,11 +50,11 @@ GLEScontext* getGLESContext();
 #define tls_thread  EglThreadInfo::get()
 
 EglGlobalInfo* g_eglInfo = NULL;
-android::Mutex  s_eglLock;
+emugl::Mutex  s_eglLock;
 
 void initGlobalInfo()
 {
-    android::Mutex::Autolock mutex(s_eglLock);
+    emugl::Mutex::AutoLock mutex(s_eglLock);
     if (!g_eglInfo) {
         g_eglInfo = EglGlobalInfo::getInstance();
     } 
@@ -273,28 +273,31 @@ EGLAPI EGLBoolean EGLAPIENTRY eglChooseConfig(EGLDisplay display, const EGLint *
     }
 
         //selection defaults
+        // NOTE: Some variables below are commented out to reduce compiler warnings.
+        // TODO(digit): Look if these variables are really needed or not, and if so
+        // fix the code to do it properly.
         EGLint      surface_type       = EGL_WINDOW_BIT;
         EGLint      renderable_type    = EGL_OPENGL_ES_BIT;
-        EGLBoolean  bind_to_tex_rgb    = EGL_DONT_CARE;
-        EGLBoolean  bind_to_tex_rgba   = EGL_DONT_CARE;
+        //EGLBoolean  bind_to_tex_rgb    = EGL_DONT_CARE;
+        //EGLBoolean  bind_to_tex_rgba   = EGL_DONT_CARE;
         EGLenum     caveat             = EGL_DONT_CARE;
         EGLint      config_id          = EGL_DONT_CARE;
         EGLBoolean  native_renderable  = EGL_DONT_CARE;
         EGLint      native_visual_type = EGL_DONT_CARE;
-        EGLint      max_swap_interval  = EGL_DONT_CARE;
-        EGLint      min_swap_interval  = EGL_DONT_CARE;
+        //EGLint      max_swap_interval  = EGL_DONT_CARE;
+        //EGLint      min_swap_interval  = EGL_DONT_CARE;
         EGLint      trans_red_val      = EGL_DONT_CARE;
         EGLint      trans_green_val    = EGL_DONT_CARE;
         EGLint      trans_blue_val     = EGL_DONT_CARE;
         EGLenum     transparent_type   = EGL_NONE;
-        EGLint      buffer_size        = 0;
+        //EGLint      buffer_size        = 0;
         EGLint      red_size           = 0;
         EGLint      green_size         = 0;
         EGLint      blue_size          = 0;
         EGLint      alpha_size         = 0;
         EGLint      depth_size         = 0;
         EGLint      frame_buffer_level = 0;
-        EGLint      sample_buffers_num = 0;
+        //EGLint      sample_buffers_num = 0;
         EGLint      samples_per_pixel  = 0;
         EGLint      stencil_size       = 0;
 
@@ -318,7 +321,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglChooseConfig(EGLDisplay display, const EGLint *
                 if(attrib_list[i+1] < 0) {
                     RETURN_ERROR(EGL_FALSE,EGL_BAD_ATTRIBUTE);
                 }
-                buffer_size = attrib_list[i+1];
+                //buffer_size = attrib_list[i+1];
                 break;
             case EGL_RED_SIZE:
                 if(attrib_list[i+1] < 0) {
@@ -345,10 +348,10 @@ EGLAPI EGLBoolean EGLAPIENTRY eglChooseConfig(EGLDisplay display, const EGLint *
                 alpha_size = attrib_list[i+1];
                 break;
             case EGL_BIND_TO_TEXTURE_RGB:
-                bind_to_tex_rgb = attrib_list[i+1];
+                //bind_to_tex_rgb = attrib_list[i+1];
                 break;
             case EGL_BIND_TO_TEXTURE_RGBA:
-                bind_to_tex_rgba = attrib_list[i+1];
+                //bind_to_tex_rgba = attrib_list[i+1];
                 break;
             case EGL_CONFIG_CAVEAT:
                 if(attrib_list[i+1] != EGL_NONE && attrib_list[i+1] != EGL_SLOW_CONFIG && attrib_list[i+1] != EGL_NON_CONFORMANT_CONFIG) {
@@ -373,13 +376,13 @@ EGLAPI EGLBoolean EGLAPIENTRY eglChooseConfig(EGLDisplay display, const EGLint *
                 if(attrib_list[i+1] < 0) {
                     RETURN_ERROR(EGL_FALSE,EGL_BAD_ATTRIBUTE);
                 }
-                max_swap_interval = attrib_list[i+1];
+                //max_swap_interval = attrib_list[i+1];
                 break;
             case EGL_MIN_SWAP_INTERVAL:
                 if(attrib_list[i+1] < 0) {
                     RETURN_ERROR(EGL_FALSE,EGL_BAD_ATTRIBUTE);
                 }
-                min_swap_interval = attrib_list[i+1];
+                //min_swap_interval = attrib_list[i+1];
                 break;
             case EGL_NATIVE_RENDERABLE:
                 native_renderable = attrib_list[i+1];
@@ -394,7 +397,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglChooseConfig(EGLDisplay display, const EGLint *
                     RETURN_ERROR(EGL_FALSE,EGL_BAD_ATTRIBUTE);
                 }
             case EGL_SAMPLE_BUFFERS:
-                sample_buffers_num = attrib_list[i+1];
+                //sample_buffers_num = attrib_list[i+1];
                 break;
                 if(attrib_list[i+1] < 0) {
                     RETURN_ERROR(EGL_FALSE,EGL_BAD_ATTRIBUTE);
@@ -635,13 +638,11 @@ EGLAPI EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay display, EGLConfig con
     }
 
     ContextPtr sharedCtxPtr;
-    EGLNativeContextType nativeShared = NULL;
     if(share_context != EGL_NO_CONTEXT) {
         sharedCtxPtr = dpy->getContext(share_context);
         if(!sharedCtxPtr.Ptr()) {
             RETURN_ERROR(EGL_NO_CONTEXT,EGL_BAD_CONTEXT);
         }
-        nativeShared = sharedCtxPtr->nativeType();
     }
 
     EGLNativeContextType globalSharedContext = dpy->getGlobalSharedContext();
@@ -815,7 +816,7 @@ EGLAPI EGLContext EGLAPIENTRY eglGetCurrentContext(void) {
     if(dpy && ctx.Ptr()){
         // This double check is required because a context might still be current after it is destroyed - in which case
         // its handle should be invalid, that is EGL_NO_CONTEXT should be returned even though the context is current
-        EGLContext c = (EGLContext)ctx->getHndl();
+        EGLContext c = (EGLContext)SafePointerFromUInt(ctx->getHndl());
         if(dpy->getContext(c).Ptr())
         {
             return c;
@@ -839,7 +840,7 @@ EGLAPI EGLSurface EGLAPIENTRY eglGetCurrentSurface(EGLint readdraw) {
             // current after it is destroyed - in which case its handle should
             // be invalid, that is EGL_NO_SURFACE should be returned even
             // though the surface is current.
-            EGLSurface s = (EGLSurface)surface->getHndl();
+            EGLSurface s = (EGLSurface)SafePointerFromUInt(surface->getHndl());
             surface = dpy->getSurface(s);
             if(surface.Ptr())
             {
@@ -858,7 +859,9 @@ EGLAPI EGLDisplay EGLAPIENTRY eglGetCurrentDisplay(void) {
 EGLAPI EGLBoolean EGLAPIENTRY eglWaitGL(void) {
     EGLenum api = eglQueryAPI();
     eglBindAPI(EGL_OPENGL_ES_API);
-    return eglWaitClient();
+    EGLBoolean ret = eglWaitClient();
+    eglBindAPI(api);
+    return ret;
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglWaitNative(EGLint engine) {
@@ -1012,7 +1015,6 @@ EglImage *attachEGLImage(unsigned int imageId)
 void detachEGLImage(unsigned int imageId)
 {
     ThreadInfo* thread  = getThreadInfo();
-    EglDisplay* dpy     = static_cast<EglDisplay*>(thread->eglDisplay);
     ContextPtr  ctx     = thread->eglContext;
     if (ctx.Ptr()) {
         ctx->detachImage(imageId);
@@ -1033,13 +1035,13 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay display, EGLContext context, EGLenum ta
     ThreadInfo* thread  = getThreadInfo();
     ShareGroupPtr sg = thread->shareGroup;
     if (sg.Ptr() != NULL) {
-        unsigned int globalTexName = sg->getGlobalName(TEXTURE, (uintptr_t)buffer);
+        unsigned int globalTexName = sg->getGlobalName(TEXTURE, SafeUIntFromPointer(buffer));
         if (!globalTexName) return EGL_NO_IMAGE_KHR;
 
         ImagePtr img( new EglImage() );
         if (img.Ptr() != NULL) {
 
-            ObjectDataPtr objData = sg->getObjectData(TEXTURE, (uintptr_t)buffer);
+            ObjectDataPtr objData = sg->getObjectData(TEXTURE, SafeUIntFromPointer(buffer));
             if (!objData.Ptr()) return EGL_NO_IMAGE_KHR;
 
             TextureData *texData = (TextureData *)objData.Ptr();

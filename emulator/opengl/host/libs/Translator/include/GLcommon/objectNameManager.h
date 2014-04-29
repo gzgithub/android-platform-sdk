@@ -16,9 +16,9 @@
 #ifndef _OBJECT_NAME_MANAGER_H
 #define _OBJECT_NAME_MANAGER_H
 
-#include <cutils/threads.h>
 #include <map>
-#include "SmartPtr.h"
+#include "emugl/common/mutex.h"
+#include "emugl/common/smart_ptr.h"
 
 enum NamedObjectType {
     VERTEXBUFFER = 0,
@@ -47,7 +47,7 @@ public:
 private:
     ObjectDataType m_dataType;
 };
-typedef SmartPtr<ObjectData> ObjectDataPtr;
+typedef emugl::SmartPtr<ObjectData> ObjectDataPtr;
 typedef unsigned long long ObjectLocalName;
 typedef std::map<ObjectLocalName, unsigned int> NamesMap;
 
@@ -129,7 +129,7 @@ public:
     void deleteName(NamedObjectType p_type, unsigned int p_name);
 
 private:
-    mutex_t m_lock;
+    emugl::Mutex m_lock;
 };
 
 //
@@ -143,7 +143,7 @@ private:
 class ShareGroup
 {
     friend class ObjectNameManager;
-    friend class SmartPtr<ShareGroup>;  // to allow destructing when ShareGroupPtr refcount reaches zero
+    friend class emugl::SmartPtr<ShareGroup>;  // to allow destructing when ShareGroupPtr refcount reaches zero
 
 public:
 
@@ -204,12 +204,12 @@ private:
     ~ShareGroup();
 
 private:
-    mutex_t m_lock;
+    emugl::Mutex m_lock;
     NameSpace *m_nameSpace[NUM_OBJECT_TYPES];
     void *m_objectsData;
 };
 
-typedef SmartPtr<ShareGroup> ShareGroupPtr;
+typedef emugl::SmartPtr<ShareGroup> ShareGroupPtr;
 typedef std::multimap<void *, ShareGroupPtr> ShareGroupsMap;
 
 //
@@ -262,7 +262,7 @@ public:
 
 private:
     ShareGroupsMap m_groups;
-    mutex_t m_lock;
+    emugl::Mutex m_lock;
     GlobalNameSpace *m_globalNameSpace;
 };
 

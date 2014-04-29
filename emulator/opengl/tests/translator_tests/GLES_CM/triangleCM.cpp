@@ -148,13 +148,10 @@ int main(int argc, char **argv)
     bool useCopy          = false;
     bool useSubCopy       = false;
 
-    int c;
-    extern char *optarg;
-
     #ifdef _WIN32
         HWND   windowId = NULL;
     #elif __linux__
-        Window windowId = NULL;
+        Window windowId = 0;
     #elif __APPLE__
         void* windowId = NULL;
     #endif
@@ -282,17 +279,17 @@ int main(int argc, char **argv)
 #define MIN_T 0
 
     GLbyte byteVertices[] = { -1,-1,0, // Position
-                             255,0,0,255, // Color
+                             (GLbyte)255,0,0,(GLbyte)255, // Color
                              MIN_T, MIN_T, // texture
                              12, //point size
 
                              1,-1,0,
-                             0,255,0,255,
+                             0,(GLbyte)255,0,(GLbyte)255,
                              MAX_T,MIN_T,
                              47,
 
                             0,1,0,
-                            0,0,255,255,
+                            0,0,(GLbyte)255,(GLbyte)255,
                             MID_T, MAX_T,
                             14
     };
