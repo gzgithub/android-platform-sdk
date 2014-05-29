@@ -204,7 +204,7 @@ bool ColorBuffer::blitFromCurrentReadBuffer()
             // save current viewport and match it to the current
             // colorbuffer size
             //
-            GLint vport[4];
+            GLint vport[4] = {};
             s_gl.glGetIntegerv(GL_VIEWPORT, vport);
             s_gl.glViewport(0, 0, m_width, m_height);
 
@@ -298,6 +298,7 @@ bool ColorBuffer::bind_fbo()
                                    GL_TEXTURE_2D, m_tex, 0);
     GLenum status = s_gl.glCheckFramebufferStatusOES(GL_FRAMEBUFFER_OES);
     if (status != GL_FRAMEBUFFER_COMPLETE_OES) {
+        ERR("ColorBuffer::bind_fbo: FBO not complete: %#x\n", status);
         s_gl.glBindFramebufferOES(GL_FRAMEBUFFER_OES, 0);
         s_gl.glDeleteFramebuffersOES(1, &m_fbo);
         m_fbo = 0;
