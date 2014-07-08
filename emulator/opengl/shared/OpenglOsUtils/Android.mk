@@ -8,7 +8,7 @@ LOCAL_PATH := $(call my-dir)
 
 ### Host library ##############################################
 
-host_common_SRC_FILES := osDynLibrary.cpp
+host_common_SRC_FILES :=
 host_common_LDLIBS :=
 host_common_INCLUDES := $(LOCAL_PATH)
 
