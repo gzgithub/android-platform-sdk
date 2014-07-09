@@ -18,15 +18,15 @@
 
 #include "SocketStream.h"
 #include "emugl/common/mutex.h"
-#include "osThread.h"
+#include "emugl/common/thread.h"
 
-class RenderServer : public osUtils::Thread
+class RenderServer : public emugl::Thread
 {
 public:
     static RenderServer *create(char* addr, size_t addrLen);
     virtual ~RenderServer();
 
-    virtual int Main();
+    virtual intptr_t main();
 
     bool isExiting() const { return m_exiting; }
 

@@ -17,8 +17,12 @@ commonSources := \
 host_commonSources := $(commonSources)
 
 host_commonLdLibs := -lstdc++
+
 ifneq (windows,$(HOST_OS))
-    host_commonLdLibs += -ldl
+    host_commonSources += thread_pthread.cpp
+    host_commonLdLibs += -ldl -lpthread
+else
+    host_commonSources += thread_win32.cpp
 endif
 
 $(call emugl-begin-host-static-library,libemugl_common)
@@ -47,6 +51,7 @@ host_commonSources := \
     shared_library_unittest.cpp \
     smart_ptr_unittest.cpp \
     thread_store_unittest.cpp \
+    thread_unittest.cpp \
 
 $(call emugl-begin-host-executable,emugl_common_host_unittests)
 LOCAL_SRC_FILES := $(host_commonSources)

@@ -15,12 +15,12 @@ host_common_INCLUDES := $(LOCAL_PATH)
 ifeq ($(HOST_OS),windows)
     host_common_SRC_FILES += \
         osProcessWin.cpp \
-        osThreadWin.cpp
+
     host_common_LDLIBS += -lws2_32 -lpsapi
 else
     host_common_SRC_FILES += \
         osProcessUnix.cpp \
-        osThreadUnix.cpp
+
     host_common_LDLIBS += -ldl
 endif
 
