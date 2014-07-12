@@ -21,9 +21,9 @@
 #include "renderControl_dec.h"
 
 #include "emugl/common/mutex.h"
-#include "osThread.h"
+#include "emugl/common/thread.h"
 
-class RenderThread : public osUtils::Thread
+class RenderThread : public emugl::Thread
 {
 public:
     static RenderThread* create(IOStream* p_stream, emugl::Mutex* mutex);
@@ -32,7 +32,7 @@ public:
 
 private:
     RenderThread(IOStream* p_stream, emugl::Mutex* mutex);
-    virtual int Main();
+    virtual intptr_t main();
 
 private:
     emugl::Mutex *m_lock;

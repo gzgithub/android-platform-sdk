@@ -13,8 +13,11 @@ commonSources := \
 
 host_commonSources := $(commonSources)
 
+host_commonLdLibs := -lstdc++
+
 ifeq ($(HOST_OS),windows)
     host_commonSources += Win32PipeStream.cpp
+    host_commonLdLibs += -lws2_32 -lpsapi
 else
     host_commonSources += UnixStream.cpp
 endif
@@ -26,7 +29,7 @@ $(call emugl-begin-host-static-library,libOpenglCodecCommon)
 LOCAL_SRC_FILES := $(host_commonSources)
 $(call emugl-import, libemugl_common)
 $(call emugl-export,C_INCLUDES,$(EMUGL_PATH)/host/include/libOpenglRender $(LOCAL_PATH))
-$(call emugl-export,LDLIBS,-lstdc++)
+$(call emugl-export,LDLIBS,$(host_commonLdLibs))
 $(call emugl-end-module)
 
 
@@ -39,6 +42,6 @@ ifdef EMUGL_BUILD_64BITS
     $(call emugl-import, lib64emugl_common)
     $(call emugl-export,C_INCLUDES,$(EMUGL_PATH)/host/include/libOpenglRender $(LOCAL_PATH))
     $(call emugl-export,CFLAGS,-m64 -fPIC)
-    $(call emugl-export,LDLIBS,-lstdc++)
+    $(call emugl-export,LDLIBS,$(host_commonLdLibs))
     $(call emugl-end-module)
 endif

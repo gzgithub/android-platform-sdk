@@ -17,7 +17,6 @@
 #include "IOStream.h"
 #include "FrameBuffer.h"
 #include "RenderServer.h"
-#include "osProcess.h"
 #include "TimeUtils.h"
 
 #include "TcpStream.h"
@@ -31,24 +30,11 @@
 #include "GLDispatch.h"
 #include "GL2Dispatch.h"
 
-static osUtils::childProcess *s_renderProc = NULL;
 static RenderServer *s_renderThread = NULL;
 static char s_renderAddr[256];
 
 static IOStream *createRenderThread(int p_stream_buffer_size,
                                     unsigned int clientFlags);
-
-//
-// For now run the renderer as a thread inside the calling
-// process instead as running it in a separate process for all
-// platforms.
-// at the future we want it to run as a seperate process except for
-// Mac OS X since it is imposibble on this platform to make one process
-// render to a window created by another process.
-//
-//#ifdef __APPLE__
-#define  RENDER_API_USE_THREAD
-//#endif
 
 int initLibrary(void)
 {
@@ -82,11 +68,10 @@ int initOpenGLRenderer(int width, int height, char* addr, size_t addrLen)
     //
     // Fail if renderer is already initialized
     //
-    if (s_renderProc || s_renderThread) {
+    if (s_renderThread) {
         return false;
     }
 
-#ifdef RENDER_API_USE_THREAD  // should be defined for mac
     //
     // initialize the renderer and listen to connections
     // on a thread in the current process.
@@ -104,110 +89,15 @@ int initOpenGLRenderer(int width, int height, char* addr, size_t addrLen)
 
     s_renderThread->start();
 
-#else
-    if (onPost) {
-        // onPost callback not supported with separate renderer process.
-        //
-        // If we ever revive separate process support, we could make the choice
-        // between thread and process at runtime instead of compile time, and
-        // choose the thread path if an onPost callback is requested. Or, the
-        // callback could be supported with a separate process using shmem or
-        // other IPC mechanism.
-        return false;
-    }
-
-    //
-    // Launch emulator_renderer
-    //
-    char cmdLine[128];
-    snprintf(cmdLine, 128, "emulator_renderer -windowid %d -port %d -x %d -y %d -width %d -height %d",
-             (int)window, portNum, x, y, width, height);
-
-    s_renderProc = osUtils::childProcess::create(cmdLine, NULL);
-    if (!s_renderProc) {
-        return false;
-    }
-
-    //
-    // try to connect to the renderer in order to check it
-    // was successfully initialized.
-    //
-    int nTrys = 0;
-    IOStream *dummy = NULL;
-    do {
-        ++nTrys;
-
-        //
-        // Wait a bit to make the renderer process a chance to be
-        // initialized.
-        // On Windows we need during this time to handle windows
-        // events since the renderer generates a subwindow of this
-        // process's window, we need to be responsive for windows
-        // during this time to let the renderer generates this subwindow.
-        //
-#ifndef _WIN32
-        TimeSleepMS(300);
-#else
-        long long t0 = GetCurrentTimeMS();
-        while( (GetCurrentTimeMS() - t0) < 300 ) {
-            MSG msg;
-            int n = 0;
-            while( PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) )
-            {
-                n++;
-                TranslateMessage( &msg );
-                DispatchMessage( &msg );
-            }
-            if (n == 0) TimeSleepMS(10);
-        }
-#endif
-
-        dummy = createRenderThread(8, 0);
-
-        if (!dummy) {
-            // stop if the process is no longer running
-            if (!osUtils::isProcessRunning(s_renderProc->getPID())) {
-                break;
-            }
-        }
-    } while(!dummy && nTrys < 10); // give up after 3 seconds, XXX: ???
-
-    if (!dummy) {
-        //
-        // Failed - make sure the process is killed
-        //
-        osUtils::KillProcess(s_renderProc->getPID(), true);
-        delete s_renderProc;
-        s_renderProc = NULL;
-        return false;
-    }
-
-    // destroy the dummy connection
-    delete dummy;
-#endif
-
     return true;
 }
 
 void setPostCallback(OnPostFn onPost, void* onPostContext)
 {
-#ifdef RENDER_API_USE_THREAD  // should be defined for mac
     FrameBuffer* fb = FrameBuffer::getFB();
     if (fb) {
         fb->setPostCallback(onPost, onPostContext);
     }
-#else
-    if (onPost) {
-        // onPost callback not supported with separate renderer process.
-        //
-        // If we ever revive separate process support, we could make the choice
-        // between thread and process at runtime instead of compile time, and
-        // choose the thread path if an onPost callback is requested. Or, the
-        // callback could be supported with a separate process using shmem or
-        // other IPC mechanism.
-        return false;
-    }
-#endif
 }
 
 void getHardwareStrings(const char** vendor, const char** renderer, const char** version)
@@ -230,21 +120,10 @@ int stopOpenGLRenderer(void)
     IOStream *dummy = createRenderThread(8, IOSTREAM_CLIENT_EXIT_SERVER);
     if (!dummy) return false;
 
-    if (s_renderProc) {
-        //
-        // wait for the process to exit
-        //
-        int exitStatus;
-        ret = s_renderProc->wait(&exitStatus);
-
-        delete s_renderProc;
-        s_renderProc = NULL;
-    }
-    else if (s_renderThread) {
+    if (s_renderThread) {
 
         // wait for the thread to exit
-        int status;
-        ret = s_renderThread->wait(&status);
+        ret = s_renderThread->wait(NULL);
 
         delete s_renderThread;
         s_renderThread = NULL;

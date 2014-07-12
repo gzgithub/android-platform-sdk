@@ -60,7 +60,7 @@ int GL2Decoder::initGL(get_proc_func_t getProcFunc, void *getProcFuncData)
             libname = getenv(GLES2_LIBNAME_VAR);
         }
 
-        m_GL2library = osUtils::dynLibrary::open(libname);
+        m_GL2library = emugl::SharedLibrary::open(libname);
         if (m_GL2library == NULL) {
             fprintf(stderr, "%s: Couldn't find %s \n", __FUNCTION__, libname);
             return -1;

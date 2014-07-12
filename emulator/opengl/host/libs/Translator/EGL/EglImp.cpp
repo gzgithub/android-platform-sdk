@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include "ThreadInfo.h"
 #include <GLcommon/TranslatorIfaces.h>
-#include <OpenglOsUtils/osDynLibrary.h>
+#include "emugl/common/shared_library.h"
 
 #include "EglWindowSurface.h"
 #include "EglPbufferSurface.h"
@@ -175,7 +175,7 @@ EGLAPI EGLDisplay EGLAPIENTRY eglGetDisplay(EGLNativeDisplayType display_id) {
 #define TRANSLATOR_GETIFACE_NAME "__translator_getIfaces"
 
 static __translator_getGLESIfaceFunc loadIfaces(const char* libName){
-    osUtils::dynLibrary* libGLES = osUtils::dynLibrary::open(libName);
+    emugl::SharedLibrary* libGLES = emugl::SharedLibrary::open(libName);
 
     if(!libGLES) return NULL;
     __translator_getGLESIfaceFunc func =  (__translator_getGLESIfaceFunc)libGLES->findSymbol(TRANSLATOR_GETIFACE_NAME);

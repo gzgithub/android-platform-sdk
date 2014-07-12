@@ -76,7 +76,6 @@ include $(EMUGL_PATH)/host/tools/emugen/Android.mk
 include $(EMUGL_PATH)/googletest.mk
 
 include $(EMUGL_PATH)/shared/emugl/common/Android.mk
-include $(EMUGL_PATH)/shared/OpenglOsUtils/Android.mk
 include $(EMUGL_PATH)/shared/OpenglCodecCommon/Android.mk
 
 # Host static libraries

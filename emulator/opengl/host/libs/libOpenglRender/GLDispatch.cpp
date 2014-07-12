@@ -16,11 +16,12 @@
 #include "GLDispatch.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "osDynLibrary.h"
+
+#include "emugl/common/shared_library.h"
 
 GLDispatch s_gl;
 
-static osUtils::dynLibrary *s_gles_lib = NULL;
+static emugl::SharedLibrary *s_gles_lib = NULL;
 
 //
 // This function is called only once during initialiation before
@@ -34,7 +35,7 @@ bool init_gl_dispatch()
     const char *libName = getenv("ANDROID_GLESv1_LIB");
     if (!libName) libName = DEFAULT_GLES_CM_LIB;
 
-    s_gles_lib = osUtils::dynLibrary::open(libName);
+    s_gles_lib = emugl::SharedLibrary::open(libName);
     if (!s_gles_lib) return false;
 
     s_gl.glAlphaFunc = (glAlphaFunc_t) s_gles_lib->findSymbol("glAlphaFunc");

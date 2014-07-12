@@ -17,12 +17,13 @@
 #include "GL2Dispatch.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "osDynLibrary.h"
+
+#include "emugl/common/shared_library.h"
 
 gl2_decoder_context_t s_gl2;
 int                   s_gl2_enabled;
 
-static osUtils::dynLibrary *s_gles2_lib = NULL;
+static emugl::SharedLibrary *s_gles2_lib = NULL;
 
 #define DEFAULT_GLES_V2_LIB EMUGL_LIBNAME("GLES_V2_translator")
 
@@ -38,7 +39,7 @@ bool init_gl2_dispatch()
     //
     // Load the GLES library
     //
-    s_gles2_lib = osUtils::dynLibrary::open(libName);
+    s_gles2_lib = emugl::SharedLibrary::open(libName);
     if (!s_gles2_lib) return false;
 
     //

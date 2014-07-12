@@ -26,7 +26,7 @@
 #define STREAM_BUFFER_SIZE 4*1024*1024
 
 RenderThread::RenderThread(IOStream *stream, emugl::Mutex *lock) :
-    osUtils::Thread(),
+    emugl::Thread(),
     m_lock(lock),
     m_stream(stream),
     m_finished(false)
@@ -43,7 +43,7 @@ RenderThread *RenderThread::create(IOStream *p_stream, emugl::Mutex *lock)
     return new RenderThread(p_stream, lock);
 }
 
-int RenderThread::Main()
+intptr_t RenderThread::main()
 {
     RenderThreadInfo tInfo;
 
