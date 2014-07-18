@@ -45,6 +45,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.xml.ManifestData;
 import com.android.ide.eclipse.adt.AdtConstants;
 import com.android.ide.eclipse.adt.AdtPlugin;
+import com.android.ide.eclipse.adt.internal.editors.layout.gle2.GraphicalEditorPart;
 import com.android.ide.eclipse.adt.internal.editors.layout.gle2.LayoutMetadata;
 import com.android.ide.eclipse.adt.internal.editors.layout.gle2.RenderLogger;
 import com.android.ide.eclipse.adt.internal.editors.layout.uimodel.UiViewElementNode;
@@ -93,6 +94,7 @@ public final class ProjectCallback extends LegacyCallback {
     private String mLayoutName;
     private ILayoutPullParser mLayoutEmbeddedParser;
     private ResourceResolver mResourceResolver;
+    private GraphicalEditorPart mEditor;
 
     /**
      * Creates a new {@link ProjectCallback} to be used with the layout lib.
@@ -103,12 +105,14 @@ public final class ProjectCallback extends LegacyCallback {
      * @param credential the sandbox credential
      */
     public ProjectCallback(LayoutLibrary layoutLib,
-            ProjectResources projectRes, IProject project, Object credential) {
+            ProjectResources projectRes, IProject project, Object credential,
+            GraphicalEditorPart editor) {
         mLayoutLib = layoutLib;
         mParentClassLoader = layoutLib.getClassLoader();
         mProjectRes = projectRes;
         mProject = project;
         mCredential = credential;
+        mEditor = editor;
     }
 
     public Set<String> getMissingClasses() {
@@ -678,6 +682,6 @@ public final class ProjectCallback extends LegacyCallback {
 
     @Override
     public ActionBarCallback getActionBarCallback() {
-        return new ActionBarCallback();
+        return new ActionBarHandler(mEditor);
     }
 }
