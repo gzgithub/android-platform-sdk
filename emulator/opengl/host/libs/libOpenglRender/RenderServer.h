@@ -17,6 +17,7 @@
 #define _LIB_OPENGL_RENDER_RENDER_SERVER_H
 
 #include "SocketStream.h"
+#include "emugl/common/mutex.h"
 #include "osThread.h"
 
 class RenderServer : public osUtils::Thread
@@ -33,6 +34,7 @@ private:
     RenderServer();
 
 private:
+    emugl::Mutex m_lock;
     SocketStream *m_listenSock;
     bool m_exiting;
 };

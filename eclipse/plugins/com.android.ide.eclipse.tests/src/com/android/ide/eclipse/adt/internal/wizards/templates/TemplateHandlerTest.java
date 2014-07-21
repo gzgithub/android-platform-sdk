@@ -24,7 +24,7 @@ import static com.android.ide.eclipse.adt.internal.wizards.templates.TemplateHan
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.ide.eclipse.adt.AdtPlugin;
 import com.android.ide.eclipse.adt.AdtUtils;
 import com.android.ide.eclipse.adt.internal.lint.EclipseLintClient;
