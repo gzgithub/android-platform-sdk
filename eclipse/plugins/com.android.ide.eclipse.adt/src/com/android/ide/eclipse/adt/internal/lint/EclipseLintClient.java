@@ -913,7 +913,12 @@ public class EclipseLintClient extends LintClient {
     @Override
     @NonNull
     public IAndroidTarget[] getTargets() {
-        return Sdk.getCurrent().getTargets();
+        Sdk sdk = Sdk.getCurrent();
+        if (sdk != null) {
+            return sdk.getTargets();
+        } else {
+            return new IAndroidTarget[0];
+        }
     }
 
     private boolean mSearchForSuperClasses;
