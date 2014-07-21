@@ -25,9 +25,10 @@
 
 #define STREAM_BUFFER_SIZE 4*1024*1024
 
-RenderThread::RenderThread() :
+RenderThread::RenderThread(IOStream *stream, emugl::Mutex *lock) :
     osUtils::Thread(),
-    m_stream(NULL),
+    m_lock(lock),
+    m_stream(stream),
     m_finished(false)
 {
 }
@@ -37,16 +38,9 @@ RenderThread::~RenderThread()
     delete m_stream;
 }
 
-RenderThread *RenderThread::create(IOStream *p_stream)
+RenderThread *RenderThread::create(IOStream *p_stream, emugl::Mutex *lock)
 {
-    RenderThread *rt = new RenderThread();
-    if (!rt) {
-        return NULL;
-    }
-
-    rt->m_stream = p_stream;
-
-    return rt;
+    return new RenderThread(p_stream, lock);
 }
 
 int RenderThread::Main()
@@ -113,6 +107,7 @@ int RenderThread::Main()
         do {
             progress = false;
 
+            m_lock->lock();
             //
             // try to process some of the command buffer using the GLESv1 decoder
             //
@@ -140,6 +135,8 @@ int RenderThread::Main()
                 readBuf.consume(last);
                 progress = true;
             }
+
+            m_lock->unlock();
 
         } while( progress );
 

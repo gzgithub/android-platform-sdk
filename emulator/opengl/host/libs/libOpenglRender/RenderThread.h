@@ -19,20 +19,23 @@
 #include "IOStream.h"
 #include "GLDecoder.h"
 #include "renderControl_dec.h"
+
+#include "emugl/common/mutex.h"
 #include "osThread.h"
 
 class RenderThread : public osUtils::Thread
 {
 public:
-    static RenderThread *create(IOStream *p_stream);
+    static RenderThread* create(IOStream* p_stream, emugl::Mutex* mutex);
     virtual ~RenderThread();
     bool isFinished() const { return m_finished; }
 
 private:
-    RenderThread();
+    RenderThread(IOStream* p_stream, emugl::Mutex* mutex);
     virtual int Main();
 
 private:
+    emugl::Mutex *m_lock;
     IOStream *m_stream;
     renderControl_decoder_context_t m_rcDec;
     bool m_finished;

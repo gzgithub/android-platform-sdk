@@ -27,6 +27,7 @@
 typedef std::set<RenderThread *> RenderThreadsSet;
 
 RenderServer::RenderServer() :
+    m_lock(),
     m_listenSock(NULL),
     m_exiting(false)
 {
@@ -102,7 +103,7 @@ int RenderServer::Main()
             break;
         }
 
-        RenderThread *rt = RenderThread::create(stream);
+        RenderThread *rt = RenderThread::create(stream, &m_lock);
         if (!rt) {
             fprintf(stderr,"Failed to create RenderThread\n");
             delete stream;
