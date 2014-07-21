@@ -914,6 +914,10 @@ public class BuildHelper {
                 commandArray.add(configFilter);
             }
 
+            // never compress apks.
+            commandArray.add("-0");
+            commandArray.add("apk");
+
             commandArray.add("-M"); //$NON-NLS-1$
             commandArray.add(osManifestPath);
 
