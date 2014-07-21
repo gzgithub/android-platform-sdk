@@ -21,9 +21,8 @@
 #define GLES2_LIBNAME     "libGLESv2.so"
 
 #include "gl2_dec.h"
-#include "osDynLibrary.h"
 #include "GLDecoderContextData.h"
-
+#include "emugl/common/shared_library.h"
 
 class GL2Decoder : public gl2_decoder_context_t
 {
@@ -35,7 +34,7 @@ public:
     void setContextData(GLDecoderContextData *contextData) { m_contextData = contextData; }
 private:
     GLDecoderContextData *m_contextData;
-    osUtils::dynLibrary * m_GL2library;
+    emugl::SharedLibrary* m_GL2library;
 
     static void *s_getProc(const char *name, void *userData);
     static void gl2_APIENTRY s_glGetCompressedTextureFormats(void *self, int count, GLint *formats);

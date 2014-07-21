@@ -77,7 +77,7 @@ RenderServer *RenderServer::create(char* addr, size_t addrLen)
     return server;
 }
 
-int RenderServer::Main()
+intptr_t RenderServer::main()
 {
     RenderThreadsSet threads;
 
@@ -146,8 +146,7 @@ int RenderServer::Main()
     for (RenderThreadsSet::iterator t = threads.begin();
          t != threads.end();
          t++) {
-        int exitStatus;
-        (*t)->wait(&exitStatus);
+        (*t)->wait(NULL);
         delete (*t);
     }
     threads.clear();

@@ -6,9 +6,9 @@ $(call emugl-import,libOpenglRender)
 LOCAL_SRC_FILES := main.cpp
 LOCAL_CFLAGS    += -O0 -g
 
-#ifeq ($(HOST_OS),windows)
-#LOCAL_LDLIBS += -lws2_32
-#endif
+ifeq ($(HOST_OS),linux)
+LOCAL_LDLIBS += -lX11
+endif
 
 $(call emugl-end-module)
 
