@@ -10,7 +10,7 @@ host_common_debug_CFLAGS :=
 ### host library #########################################
 $(call emugl-begin-host-static-library,libGLESv1_dec)
 
-$(call emugl-import, libOpenglCodecCommon libOpenglOsUtils)
+$(call emugl-import, libOpenglCodecCommon)
 $(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
 
 $(call emugl-gen-decoder,$(LOCAL_PATH),gl)
@@ -27,7 +27,7 @@ $(call emugl-end-module)
 ifdef EMUGL_BUILD_64BITS
     $(call emugl-begin-host64-static-library,lib64GLESv1_dec)
 
-    $(call emugl-import, lib64OpenglCodecCommon lib64OpenglOsUtils)
+    $(call emugl-import, lib64OpenglCodecCommon)
     $(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
 
     $(call emugl-gen-decoder,$(LOCAL_PATH),gl)

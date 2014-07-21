@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
     //
     // run the server listener loop
     //
-    server->Main();
+    server->main();
 #else
     //
     // on windows we need to handle messages for the

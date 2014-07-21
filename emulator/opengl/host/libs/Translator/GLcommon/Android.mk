@@ -35,7 +35,6 @@ endif
 
 $(call emugl-begin-host-static-library,libGLcommon)
 
-$(call emugl-import,libOpenglOsUtils)
 translator_path := $(LOCAL_PATH)/..
 LOCAL_SRC_FILES := $(host_common_SRC_FILES)
 $(call emugl-export,LDLIBS,$(host_common_LDLIBS))
@@ -50,7 +49,6 @@ $(call emugl-end-module)
 ifdef EMUGL_BUILD_64BITS
     $(call emugl-begin-host64-static-library,lib64GLcommon)
 
-    $(call emugl-import,lib64OpenglOsUtils)
     translator_path := $(LOCAL_PATH)/..
     LOCAL_SRC_FILES := $(host_common_SRC_FILES)
     LOCAL_CFLAGS += -fPIC
