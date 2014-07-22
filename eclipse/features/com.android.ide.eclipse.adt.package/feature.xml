@@ -33,6 +33,7 @@
       <import feature="org.eclipse.egit"/>
       <import feature="org.eclipse.egit.import"/>
       <import feature="org.eclipse.cdt"/>
+      <import feature="org.eclipse.jdt"/>
    </requires>
 
    <plugin
