@@ -25,6 +25,7 @@
       <import plugin="com.android.ide.eclipse.gldebugger" version="22.3.0" match="greaterOrEqual"/>
       <import plugin="com.android.ide.eclipse.hierarchyviewer" version="22.3.0" match="greaterOrEqual"/>
       <import plugin="com.android.ide.eclipse.traceview" version="22.3.0" match="greaterOrEqual"/>
+      <import plugin="com.android.ide.eclipse.ndk" version="22.3.0" match="greaterOrEqual"/>
       <import plugin="overlay.com.android.ide.eclipse.adt.overlay"/>
       <import feature="org.eclipse.equinox.p2.user.ui"/>
       <import feature="org.eclipse.platform"/>
