@@ -1,9 +1,6 @@
 apply plugin: 'sdk-files'
 
-// See $ANDROID_SRC/tools/buildSrc/base/version.gradle for definition of baseVersion
-// However, if Eclipse bundles don't get the same version as tools baseVersion, then this
-// will have to be hard coded and fixed by sdk/eclipse/scripts/update_version.sh
-def basePath = "../../out/host/maven/bundles-${rootProject.ext.baseVersion}-SNAPSHOT/products/"
+def basePath = "../../../out/host/maven/bundles-23.0.3-SNAPSHOT/products/"
 
 sdk {
     linux {
