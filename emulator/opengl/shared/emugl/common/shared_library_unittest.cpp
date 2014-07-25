@@ -100,6 +100,11 @@ public:
 
     SharedLibrary* operator->() { return mLib; }
 
+    void release() {
+        delete mLib;
+        mLib = NULL;
+    }
+
 private:
     SharedLibrary* mLib;
 };
@@ -111,18 +116,36 @@ TEST_F(SharedLibraryTest, Open) {
     EXPECT_TRUE(lib.get());
 }
 
-TEST_F(SharedLibraryTest, OpenWithExtension) {
+TEST_F(SharedLibraryTest, OpenLibraryWithExtension) {
     std::string path = library_path();
+
+    // test extension append
+    ScopedSharedLibrary libNoExtension(SharedLibrary::open(path.c_str()));
+    EXPECT_TRUE(libNoExtension.get());
+    libNoExtension.release();
+
 #ifdef _WIN32
     path += ".dll";
 #elif defined(__APPLE__)
+    // try to open the library without an extension
+
     path += ".dylib";
 #else
     path += ".so";
 #endif
+
+    // test open with prepended extension
     ScopedSharedLibrary lib(SharedLibrary::open(path.c_str()));
     EXPECT_TRUE(lib.get());
 }
+
+#ifdef __APPLE__
+TEST_F(SharedLibraryTest, OpenLibraryWithoutExtension) {
+    const char* library = "/System/Library/Frameworks/OpenGL.framework/OpenGL";
+    ScopedSharedLibrary lib(SharedLibrary::open(library));
+    EXPECT_TRUE(lib.get());
+}
+#endif
 
 TEST_F(SharedLibraryTest, FindSymbol) {
     ScopedSharedLibrary lib(SharedLibrary::open(library_path()));
