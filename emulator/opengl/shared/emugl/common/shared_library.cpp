@@ -75,7 +75,17 @@ SharedLibrary* SharedLibrary::open(const char* libraryName) {
         libPath = path;
     }
 
+#ifdef __APPLE__
+    // On OSX, some libraries don't include an extension (notably OpenGL)
+    // On OSX we try to open |libraryName| first.  If that doesn't exist,
+    // we try |libraryName|.dylib
+    void* lib = dlopen(libraryName, RTLD_NOW);
+    if (lib == NULL) {
+        lib = dlopen(libPath, RTLD_NOW);
+    }
+#else
     void* lib = dlopen(libPath, RTLD_NOW);
+#endif
 
     if (path) {
         free(path);
