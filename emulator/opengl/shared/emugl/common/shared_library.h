@@ -38,9 +38,16 @@ namespace emugl {
 //
 class SharedLibrary {
 public:
-    // Open a given library. |libraryName| can be either a full library
-    // path, or a simple name without an extension. On success, returns
-    // a new SharedLibrary instance that must be deleted by the caller.
+    // Open a given library.  If |libraryName| has no extension, a
+    // platform-appropriate extension is added and that path is opened.
+    // If the |libraryName| has an extension, that form is opened.
+    //
+    // On OSX, some libraries don't include an extension (notably OpenGL)
+    // On OSX we try to open |libraryName| first.  If that doesn't exist,
+    // we try |libraryName|.dylib
+    //
+    // On success, returns a new SharedLibrary instance that must be
+    // deleted by the caller.
     static SharedLibrary* open(const char* libraryName);
 
     // Closes an existing SharedLibrary instance.
