@@ -21,12 +21,6 @@ ifeq ($(BUILD_STANDALONE_EMULATOR),true)
 EMUGL_COMMON_INCLUDES := $(EMUGL_PATH)/host/libs/Translator/include
 endif
 
-ifeq ($(BUILD_STANDALONE_EMULATOR),true)
-EMUGL_BUILD_64BITS := $(strip $(EMULATOR_BUILD_64BITS))
-else
-EMUGL_BUILD_64BITS := true
-endif
-
 # common cflags used by several modules
 # This is always set to a module's LOCAL_CFLAGS
 # See the definition of emugl-begin-module in common.mk
@@ -79,25 +73,12 @@ include $(EMUGL_PATH)/shared/OpenglCodecCommon/Android.mk
 include $(EMUGL_PATH)/host/libs/GLESv1_dec/Android.mk
 include $(EMUGL_PATH)/host/libs/GLESv2_dec/Android.mk
 include $(EMUGL_PATH)/host/libs/renderControl_dec/Android.mk
-include $(EMUGL_PATH)/tests/ut_rendercontrol_dec/Android.mk
 include $(EMUGL_PATH)/host/libs/Translator/GLcommon/Android.mk
 include $(EMUGL_PATH)/host/libs/Translator/GLES_CM/Android.mk
 include $(EMUGL_PATH)/host/libs/Translator/GLES_V2/Android.mk
 include $(EMUGL_PATH)/host/libs/Translator/EGL/Android.mk
 
-# Required to declare SDL-related flags for some host tests.
-include $(EMUGL_PATH)/sdl.mk
-
 # Host shared libraries
 include $(EMUGL_PATH)/host/libs/libOpenglRender/Android.mk
-
-# Host executables
-include $(EMUGL_PATH)/host/renderer/Android.mk
-
-# Host unit-test for the renderer.
-
-include $(EMUGL_PATH)/tests/translator_tests/MacCommon/Android.mk
-include $(EMUGL_PATH)/tests/translator_tests/GLES_CM/Android.mk
-include $(EMUGL_PATH)/tests/translator_tests/GLES_V2/Android.mk
 
 endif # BUILD_EMULATOR_HOST_OPENGL == true
