@@ -22,17 +22,15 @@ LOCAL_SRC_FILES := GL2Decoder.cpp
 $(call emugl-end-module)
 
 ### host library, 64-bit ####################################
-ifdef EMUGL_BUILD_64BITS
-    $(call emugl-begin-host64-static-library,lib64GLESv2_dec)
-    $(call emugl-import, lib64OpenglCodecCommon)
-    $(call emugl-gen-decoder,$(LOCAL_PATH),gl2)
+$(call emugl-begin-host64-static-library,lib64GLESv2_dec)
+$(call emugl-import, lib64OpenglCodecCommon)
+$(call emugl-gen-decoder,$(LOCAL_PATH),gl2)
 
-    # For gl2_types.h !
-    $(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
+# For gl2_types.h !
+$(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
 
-    $(call emugl-export,CFLAGS,$(host_common_debug_CFLAGS) -m64)
+$(call emugl-export,CFLAGS,$(host_common_debug_CFLAGS))
 
-    LOCAL_SRC_FILES := GL2Decoder.cpp
+LOCAL_SRC_FILES := GL2Decoder.cpp
 
-    $(call emugl-end-module)
-endif
+$(call emugl-end-module)
