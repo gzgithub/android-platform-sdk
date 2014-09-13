@@ -24,32 +24,14 @@
 
 TypeFactory * TypeFactory::m_instance = NULL;
 
-static Var0 g_var0;
-static Var8 g_var8;
-static Var16 g_var16;
-static Var32 g_var32;
-
 typedef std::map<std::string, VarType> TypeMap;
 static  TypeMap g_varMap;
 static bool g_initialized = false;
 static int g_typeId = 0;
 
 
-static VarConverter * getVarConverter(int size)
-{
-    VarConverter *v = NULL;
-
-    switch(size) {
-    case 0: v =  &g_var0; break;
-    case 8: v =  &g_var8; break;
-    case 16:    v =  &g_var16; break;
-    case 32:    v =  &g_var32; break;
-    }
-    return v;
-}
-
 #define ADD_TYPE(name, size, printformat,ispointer)                                           \
-    g_varMap.insert(std::pair<std::string, VarType>(name, VarType(g_typeId++, name, &g_var##size , printformat , ispointer)));
+    g_varMap.insert(std::pair<std::string, VarType>(name, VarType(g_typeId++, name, (size + 7) >> 3, printformat , ispointer)));
 
 void TypeFactory::initBaseTypes()
 {
@@ -129,20 +111,27 @@ int TypeFactory::initFromFile(const std::string &filename)
             }
         }
 
-        VarConverter *v = getVarConverter(atoi(size.c_str()));
-        if (v == NULL) {
-            fprintf(stderr, "Error: %d : unknown var width: %d\n", lc, atoi(size.c_str()));
-            return -1;
-        }
+        size_t bitSize = atoi(size.c_str());
+        size_t byteSize = (bitSize + 7) >> 3;
 
         if (getVarTypeByName(name)->id() != 0) {
             fprintf(stderr,
                     "Warining: %d : type %s is already known, definition in line %d is taken\n",
                     lc, name.c_str(), lc);
         }
-        g_varMap.insert(std::pair<std::string, VarType>(name, VarType(g_typeId++, name, v ,printString,isPointer)));
+        g_varMap.insert(std::pair<std::string, VarType>(
+                name, VarType(g_typeId++,
+                              name,
+                              byteSize,
+                              printString,
+                              isPointer)));
         std::string constName = "const " + name;
-        g_varMap.insert(std::pair<std::string, VarType>(constName, VarType(g_typeId++, constName, v ,printString,isPointer))); //add a const type
+        g_varMap.insert(std::pair<std::string, VarType>(
+                constName, VarType(g_typeId++,
+                                   constName,
+                                   byteSize,
+                                   printString,
+                                   isPointer))); //add a const type
     }
     g_initialized = true;
     return 0;

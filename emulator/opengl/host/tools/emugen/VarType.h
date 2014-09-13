@@ -18,60 +18,44 @@
 
 #include <string>
 
-class VarConverter {
-public:
-    VarConverter(size_t bytes) : m_bytes(bytes) {}
-    size_t bytes() const { return m_bytes; }
-private:
-    size_t m_bytes;
-};
-
-class Var8 : public VarConverter {
-public:
-    Var8() : VarConverter(1) {}
-};
-
-class Var16 : public VarConverter {
-public:
-    Var16() : VarConverter(2) {}
-};
-
-class Var32 : public VarConverter {
-public:
-    Var32() : VarConverter(4) {}
-};
-
-class Var0 : public VarConverter {
-public:
-    Var0() : VarConverter(0) {}
-};
-
-
+// VarType models the types of values used on the wire protocol by
+// both encoders and decoders. Each type is identified by a unique id,
+// and a name, and provides a size in bytes for the values, a printf-like
+// formatter string, and a flag telling if the value corresponds to a
+// pointer.
 class VarType {
 public:
     VarType() :
-        m_id(0), m_name("default_constructed"), m_converter(NULL), m_printFomrat("0x%x"), m_isPointer(false)
-    {
-    }
+            m_id(0),
+            m_name("default_constructed"),
+            m_byteSize(0),
+            m_printFormat("0x%x"),
+            m_isPointer(false) {}
 
-    VarType(size_t id, const std::string & name, const VarConverter * converter, const std::string & printFormat , const bool isPointer) :
-        m_id(id), m_name(name), m_converter(const_cast<VarConverter *>(converter)), m_printFomrat(printFormat), m_isPointer(isPointer)
-    {
-    }
+    VarType(size_t id,
+            const std::string& name,
+            size_t byteSize,
+            const std::string& printFormat,
+            bool isPointer) :
+            m_id(id),
+            m_name(name),
+            m_byteSize(byteSize),
+            m_printFormat(printFormat),
+            m_isPointer(isPointer) {}
 
-    ~VarType()
-    {
-    }
-    const std::string & name() const { return m_name; }
-    const std::string & printFormat() const { return m_printFomrat; }
-    size_t bytes() const { return m_converter->bytes(); }
-    bool isPointer() const { return m_isPointer; }
+    ~VarType() {}
+
     size_t id() const { return m_id; }
+    const std::string& name() const { return m_name; }
+    size_t bytes() const { return m_byteSize; }
+    const std::string& printFormat() const { return m_printFormat; }
+    bool isPointer() const { return m_isPointer; }
+
 private:
     size_t m_id;
     std::string m_name;
-    VarConverter * m_converter;
-    std::string m_printFomrat;
+    size_t m_byteSize;
+    std::string m_printFormat;
     bool m_isPointer;
 };
 
