@@ -51,6 +51,7 @@ import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Project;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
+import com.android.tools.lint.detector.api.TextFormat;
 import com.google.common.base.Charsets;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
@@ -766,7 +767,7 @@ public class TemplateHandlerTest extends SdkLoadingTestCase {
             @Override
             public void report(@NonNull Context context,
                     @NonNull Issue issue, @NonNull Severity severity,
-                    @Nullable Location location, @NonNull String message, @Nullable Object data) {
+                    @Nullable Location location, @NonNull String message, @NonNull TextFormat format) {
                 String s = "Found lint error: " + issue.getId() + ": " + message + " at " + location;
                 job.setProperty(ERROR_KEY, s);
                 fail(s);
