@@ -13,3 +13,4 @@ Bundle-ClassPath: .,
  libs/lint-api.jar,
  libs/lint-checks.jar,
  libs/easymock.jar
+Import-Package: com.android.tools.lint.detector.api
