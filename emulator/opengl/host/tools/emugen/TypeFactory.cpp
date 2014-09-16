@@ -24,32 +24,14 @@
 
 TypeFactory * TypeFactory::m_instance = NULL;
 
-static Var0 g_var0;
-static Var8 g_var8;
-static Var16 g_var16;
-static Var32 g_var32;
-
 typedef std::map<std::string, VarType> TypeMap;
 static  TypeMap g_varMap;
 static bool g_initialized = false;
 static int g_typeId = 0;
 
 
-static VarConverter * getVarConverter(int size)
-{
-    VarConverter *v = NULL;
-
-    switch(size) {
-    case 0: v =  &g_var0; break;
-    case 8: v =  &g_var8; break;
-    case 16:    v =  &g_var16; break;
-    case 32:    v =  &g_var32; break;
-    }
-    return v;
-}
-
 #define ADD_TYPE(name, size, printformat,ispointer)                                           \
-    g_varMap.insert(std::pair<std::string, VarType>(name, VarType(g_typeId++, name, &g_var##size , printformat , ispointer)));
+    g_varMap.insert(std::pair<std::string, VarType>(name, VarType(g_typeId++, name, (size + 7) >> 3, printformat , ispointer)));
 
 void TypeFactory::initBaseTypes()
 {
@@ -103,39 +85,53 @@ int TypeFactory::initFromFile(const std::string &filename)
             return -2;
         }
 
+        // The ispointer definition is optional since we can just
+        // look at the type name, and determine it is a pointer if
+        // it ends with '*'.
+        bool isPointer = (name[name.size() - 1U] == '*');
+
         pos = last + 1;
         std::string pointerDef;
         pointerDef = getNextToken(str, pos, &last, WHITESPACE);
-        if (pointerDef.size() == 0) {
-            fprintf(stderr, "Error: %d : missing ispointer definition\n", lc);
-            return -2;
+        if (pointerDef.size() != 0) {
+            // Just a little sanity check.
+            if (std::string("true")==pointerDef) {
+                if (!isPointer) {
+                    fprintf(stderr, "Error: %d: invalid isPointer definition: 'true' but name does not end with '*'!\n", lc);
+                    return -2;
+                }
+            } else if (std::string("false")==pointerDef) {
+                if (isPointer) {
+                    fprintf(stderr, "Error: %d: invalid isPointer definition: 'false' but name does end with '*'!\n", lc);
+                    return -2;
+                }
+            } else {
+                fprintf(stderr, "Error: %d : invalid isPointer definition, must be either \"true\" or \"false\"\n", lc);
+                return -2;
+            }
         }
 
-        bool isPointer=false;
-        if (std::string("true")==pointerDef)
-          isPointer = true;
-        else if (std::string("false")==pointerDef)
-          isPointer = false;
-        else
-        {
-          fprintf(stderr, "Error: %d : invalid isPointer definition, must be either \"true\" or \"false\"\n", lc);
-          return -2;
-        }
-
-        VarConverter *v = getVarConverter(atoi(size.c_str()));
-        if (v == NULL) {
-            fprintf(stderr, "Error: %d : unknown var width: %d\n", lc, atoi(size.c_str()));
-            return -1;
-        }
+        size_t bitSize = atoi(size.c_str());
+        size_t byteSize = (bitSize + 7) >> 3;
 
         if (getVarTypeByName(name)->id() != 0) {
             fprintf(stderr,
                     "Warining: %d : type %s is already known, definition in line %d is taken\n",
                     lc, name.c_str(), lc);
         }
-        g_varMap.insert(std::pair<std::string, VarType>(name, VarType(g_typeId++, name, v ,printString,isPointer)));
+        g_varMap.insert(std::pair<std::string, VarType>(
+                name, VarType(g_typeId++,
+                              name,
+                              byteSize,
+                              printString,
+                              isPointer)));
         std::string constName = "const " + name;
-        g_varMap.insert(std::pair<std::string, VarType>(constName, VarType(g_typeId++, constName, v ,printString,isPointer))); //add a const type
+        g_varMap.insert(std::pair<std::string, VarType>(
+                constName, VarType(g_typeId++,
+                                   constName,
+                                   byteSize,
+                                   printString,
+                                   isPointer))); //add a const type
     }
     g_initialized = true;
     return 0;
