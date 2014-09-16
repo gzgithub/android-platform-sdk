@@ -25,8 +25,10 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.devices.Screen;
 import com.android.utils.StdLogger;
+import com.google.common.collect.Lists;
 
 import java.lang.reflect.Constructor;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -53,10 +55,10 @@ public class ConfigurationTest extends TestCase {
         DeviceManager deviceManager = DeviceManager.createInstance(
                                                         null /*osSdkPath*/,
                                                         new StdLogger(StdLogger.Level.VERBOSE));
-        List<Device> devices = deviceManager.getDevices(DeviceManager.DeviceFilter.DEFAULT);
+        Collection<Device> devices = deviceManager.getDevices(DeviceManager.DeviceFilter.DEFAULT);
         assertNotNull(devices);
         assertTrue(devices.size() > 0);
-        configuration.setDevice(devices.get(0), false);
+        configuration.setDevice(devices.iterator().next(), false);
 
         // Check syncing
         FolderConfiguration folderConfig = configuration.getFullConfig();
@@ -113,7 +115,7 @@ public class ConfigurationTest extends TestCase {
         DeviceManager deviceManager = DeviceManager.createInstance(
                                             null /*osSdkPath*/,
                                             new StdLogger(StdLogger.Level.VERBOSE));
-        List<Device> devices = deviceManager.getDevices(DeviceManager.DeviceFilter.DEFAULT);
+        List<Device> devices = Lists.newArrayList(deviceManager.getDevices(DeviceManager.DeviceFilter.DEFAULT));
         assertNotNull(devices);
         assertTrue(devices.size() > 0);
         configuration.setDevice(devices.get(0), false);
