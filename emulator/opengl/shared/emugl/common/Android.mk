@@ -49,6 +49,7 @@ host_commonSources := \
     smart_ptr_unittest.cpp \
     thread_store_unittest.cpp \
     thread_unittest.cpp \
+    unique_integer_map_unittest.cpp \
 
 $(call emugl-begin-host-executable,emugl_common_host_unittests)
 LOCAL_SRC_FILES := $(host_commonSources)
