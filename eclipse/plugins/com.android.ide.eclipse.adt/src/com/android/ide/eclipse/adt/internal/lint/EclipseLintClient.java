@@ -49,6 +49,7 @@ import com.android.tools.lint.detector.api.Location.Handle;
 import com.android.tools.lint.detector.api.Position;
 import com.android.tools.lint.detector.api.Project;
 import com.android.tools.lint.detector.api.Severity;
+import com.android.tools.lint.detector.api.TextFormat;
 import com.android.tools.lint.detector.api.XmlContext;
 import com.android.utils.Pair;
 import com.android.utils.SdkUtils;
@@ -379,7 +380,8 @@ public class EclipseLintClient extends LintClient {
     @Override
     public void report(@NonNull Context context, @NonNull Issue issue, @NonNull Severity s,
             @Nullable Location location,
-            @NonNull String message, @Nullable Object data) {
+            @NonNull String message, @NonNull TextFormat format) {
+        message = format.toText(message);
         int severity = getMarkerSeverity(s);
         IMarker marker = null;
         if (location != null) {
@@ -666,8 +668,8 @@ public class EclipseLintClient extends LintClient {
             return "";
         }
 
-        String summary = issue.getDescription(Issue.OutputFormat.TEXT);
-        String explanation = issue.getExplanation(Issue.OutputFormat.TEXT);
+        String summary = issue.getBriefDescription(TextFormat.TEXT);
+        String explanation = issue.getExplanation(TextFormat.TEXT);
 
         StringBuilder sb = new StringBuilder(summary.length() + explanation.length() + 20);
         try {
