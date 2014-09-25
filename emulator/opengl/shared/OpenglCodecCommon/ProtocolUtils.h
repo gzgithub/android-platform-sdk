@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 namespace emugl {
 
@@ -101,6 +103,84 @@ template <typename T, typename S>
 inline T Unpack(const void* ptr) {
     return UnpackerT<T, S, is_pointer<T>::value>::unpack(ptr);
 }
+
+// Helper class used to ensure input buffers passed to EGL/GL functions
+// are properly aligned (preventing crashes with some backends).
+// Usage example:
+//
+//    InputBuffer inputBuffer(ptr, size);
+//    glDoStuff(inputBuffer.get());
+//
+// inputBuffer.get() will return the original value of |ptr| if it was
+// aligned on an 8-byte boundary. Otherwise, it will return the address
+// of an aligned heap-allocated copy of the original |size| bytes starting
+// from |ptr|. The heap block is released at scope exit.
+class InputBuffer {
+public:
+    InputBuffer(const void* input, size_t size, size_t align = 8) :
+            mBuff(input), mIsCopy(false) {
+        if (((uintptr_t)input & (align - 1U)) != 0) {
+            void* newBuff = malloc(size);
+            memcpy(newBuff, input, size);
+            mBuff = newBuff;
+            mIsCopy = true;
+        }
+    }
+
+    ~InputBuffer() {
+        if (mIsCopy) {
+            free((void*)mBuff);
+        }
+    }
+
+    const void* get() const {
+        return mBuff;
+    }
+
+private:
+    const void* mBuff;
+    bool mIsCopy;
+};
+
+// Helper class used to ensure that output buffers passed to EGL/GL functions
+// are aligned on 8-byte addresses.
+// Usage example:
+//
+//    ptr = stream->alloc(size);
+//    OutputBuffer outputBuffer(ptr, size);
+//    glGetStuff(outputBuffer.get());
+//    outputBuffer.flush();
+//
+// outputBuffer.get() returns the original value of |ptr| if it was already
+// aligned on an 8=byte boundary. Otherwise, it returns the size of an heap
+// allocated zeroed buffer of |size| bytes.
+//
+// outputBuffer.flush() copies the content of the heap allocated buffer back
+// to |ptr| explictly, if needed. If a no-op if |ptr| was aligned.
+class OutputBuffer {
+public:
+    OutputBuffer(unsigned char* ptr, size_t size, size_t align = 8) :
+            mOrgBuff(ptr), mBuff(ptr), mSize(size) {
+        if (((uintptr_t)ptr & (align - 1U)) != 0) {
+            void* newBuff = calloc(1, size);
+            mBuff = newBuff;
+        }
+    }
+
+    void* get() const {
+        return mBuff;
+    }
+
+    void flush() {
+        if (mBuff != mOrgBuff) {
+            memcpy(mOrgBuff, mBuff, mSize);
+        }
+    }
+private:
+    unsigned char* mOrgBuff;
+    void* mBuff;
+    size_t mSize;
+};
 
 }  // namespace emugl
 
