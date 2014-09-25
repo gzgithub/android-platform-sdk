@@ -792,7 +792,16 @@ int ApiGen::genDecoderImpl(const std::string &filename)
 \t\tswitch(opcode) {\n");
 
     for (size_t f = 0; f < n; f++) {
-        enum Pass_t { PASS_TmpBuffAlloc = 0, PASS_MemAlloc, PASS_DebugPrint, PASS_FunctionCall, PASS_FlushOutput, PASS_Epilog, PASS_LAST };
+        enum Pass_t {
+            PASS_FIRST = 0,
+            PASS_VariableDeclarations = PASS_FIRST,
+            PASS_TmpBuffAlloc,
+            PASS_MemAlloc,
+            PASS_DebugPrint,
+            PASS_FunctionCall,
+            PASS_FlushOutput,
+            PASS_Epilog,
+            PASS_LAST };
         EntryPoint *e = &at(f);
 
         // construct a printout string;
@@ -816,7 +825,7 @@ int ApiGen::genDecoderImpl(const std::string &filename)
             retvalType = e->retval().type()->name();
         }
 
-        for (int pass = PASS_TmpBuffAlloc; pass < PASS_LAST; pass++) {
+        for (int pass = PASS_FIRST; pass < PASS_LAST; pass++) {
             if (pass == PASS_FunctionCall &&
                 !e->retval().isVoid() &&
                 !e->retval().isPointer()) {
@@ -849,6 +858,10 @@ int ApiGen::genDecoderImpl(const std::string &filename)
                 if (v->isVoid()) {
                     continue;
                 }
+                const char* var_name = v->name().c_str();
+                const char* var_type_name = v->type()->name().c_str();
+                const unsigned var_type_bytes = v->type()->bytes();
+
                 if ((pass == PASS_FunctionCall) &&
                     (j != 0 || e->customDecoder())) {
                     fprintf(fp, ", ");
@@ -858,160 +871,164 @@ int ApiGen::genDecoderImpl(const std::string &filename)
                 }
 
                 if (!v->isPointer()) {
-                    if (pass == PASS_FunctionCall ||
-                        pass == PASS_DebugPrint) {
+                    if (pass == PASS_VariableDeclarations) {
                         fprintf(fp,
-                                "Unpack<%s,uint%d_t>(ptr + %s)",
-                                v->type()->name().c_str(),
-                                (unsigned) v->type()->bytes() * 8U,
+                                "\t\t\t%s var_%s = Unpack<%s,uint%u_t>(ptr + %s);\n",
+                                var_type_name,
+                                var_name,
+                                var_type_name,
+                                var_type_bytes * 8U,
                                 varoffset.c_str());
                     }
-                    varoffset += " + " + toString(v->type()->bytes());
+
+                    if (pass == PASS_FunctionCall ||
+                        pass == PASS_DebugPrint) {
+                        fprintf(fp, "var_%s", var_name);
+                    }
+                    varoffset += " + " + toString(var_type_bytes);
                     continue;
+                }
+
+                if (pass == PASS_VariableDeclarations) {
+                    fprintf(fp,
+                            "\t\t\tuint32_t size_%s __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + %s);\n",
+                            var_name,
+                            varoffset.c_str());
                 }
 
                 if (v->pointerDir() == Var::POINTER_IN ||
                     v->pointerDir() == Var::POINTER_INOUT) {
-                    if (pass == PASS_MemAlloc) {
-                        fprintf(fp,
-                                "\t\t\tsize_t tmpPtr%uSize = (size_t)*(uint32_t *)(ptr + %s);\n",
-                                (unsigned) j,
-                                varoffset.c_str());
+                    if (pass == PASS_VariableDeclarations) {
 #if USE_ALIGNED_BUFFERS
                         fprintf(fp,
-                                "\t\t\tInputBuffer tmpPtr%u(ptr + %s + 4, tmpPtr%uSize);\n",
-                                (unsigned) j,
+                                "\t\t\tInputBuffer inptr_%s(ptr + %s + 4, size_%s);\n",
+                                var_name,
                                 varoffset.c_str(),
-                                (unsigned) j);
+                                var_name);
                     }
                     if (pass == PASS_FunctionCall) {
                         if (v->nullAllowed()) {
                             fprintf(fp,
-                                    "tmpPtr%uSize == 0 ? NULL : (%s)(tmpPtr%u.get())",
-                                    (unsigned) j,
-                                    v->type()->name().c_str(),
-                                    (unsigned) j);
+                                    "size_%s == 0 ? NULL : (%s)(inptr_%s.get())",
+                                    var_name,
+                                    var_type_name,
+                                    var_name);
                         } else {
                             fprintf(fp,
-                                    "(%s)(tmpPtr%u.get())",
-                                    v->type()->name().c_str(),
-                                    (unsigned) j);
+                                    "(%s)(inptr_%s.get())",
+                                    var_type_name,
+                                    var_name);
                         }
                     } else if (pass == PASS_DebugPrint) {
                         fprintf(fp,
-                                "(%s)(tmpPtr%u.get()), (uint32_t)tmpPtr%uSize",
-                                v->type()->name().c_str(),
-                                (unsigned) j,
-                                (unsigned) j);
+                                "(%s)(inptr_%s.get()), size_%s",
+                                var_type_name,
+                                var_name,
+                                var_name);
                     }
 #else  // !USE_ALIGNED_BUFFERS
                         fprintf(fp,
-                                "unsigned char *tmpPtr%u = (ptr + %s + 4);\n",
-                                (unsigned) j,
+                                "unsigned char *inptr_%s = (ptr + %s + 4);\n",
+                                var_name,
                                 varoffset.c_str());
                     }
                     if (pass == PASS_FunctionCall) {
                         if (v->nullAllowed()) {
                             fprintf(fp,
-                                    "*((uint32_t *)(ptr + %s)) == 0 ? NULL : (%s)(ptr + %s + 4)",
-                                    varoffset.c_str(),
-                                    v->type()->name().c_str(),
-                                    varoffset.c_str());
+                                    "size_%s == 0 ? NULL : (%s)(inptr_%s)",
+                                    var_name,
+                                    var_type_name,
+                                    var_name);
                         } else {
                             fprintf(fp,
-                                    "(%s)(ptr + %s + 4)",
-                                    v->type()->name().c_str(),
-                                    varoffset.c_str());
+                                    "(%s)(inptr_%s)",
+                                    var_type_name,
+                                    var_name);
                         }
                     } else if (pass == PASS_DebugPrint) {
                         fprintf(fp,
-                                "(%s)(ptr + %s + 4), *(uint32_t *)(ptr + %s)",
-                                v->type()->name().c_str(),
-                                varoffset.c_str(),
-                                varoffset.c_str());
+                                "(%s)(inptr_%s), size_%s",
+                                var_type_name,
+                                var_name,
+                                var_name);
                     }
 #endif  // !USE_ALIGNED_BUFFERS
-                    varoffset +=
-                            " + 4 + *(tsize_t *)(ptr +" + varoffset + ")";
+                    varoffset += " + 4 + size_";
+                    varoffset += var_name;
                 } else { // out pointer;
                     if (pass == PASS_TmpBuffAlloc) {
-                        fprintf(fp,
-                                "\t\t\tsize_t tmpPtr%uSize = (size_t)*(uint32_t *)(ptr + %s);\n",
-                                (unsigned) j,
-                                varoffset.c_str());
                         if (!totalTmpBuffExist) {
                             fprintf(fp,
-                                    "\t\t\tsize_t totalTmpSize = tmpPtr%uSize;\n",
-                                    (unsigned)j);
+                                    "\t\t\tsize_t totalTmpSize = size_%s;\n",
+                                    var_name);
                         } else {
                             fprintf(fp,
-                                    "\t\t\ttotalTmpSize += tmpPtr%uSize;\n",
-                                    (unsigned)j);
+                                    "\t\t\ttotalTmpSize += size_%s;\n",
+                                    var_name);
                         }
                         tmpBufOffset[j] = totalTmpBuffOffset;
-                        char tmpPtrName[16];
-                        sprintf(tmpPtrName," + tmpPtr%uSize", (unsigned)j);
-                        totalTmpBuffOffset += std::string(tmpPtrName);
+                        totalTmpBuffOffset += " + size_";
+                        totalTmpBuffOffset += var_name;
                         totalTmpBuffExist = true;
                     } else if (pass == PASS_MemAlloc) {
 #if USE_ALIGNED_BUFFERS
                         fprintf(fp,
-                                "\t\t\tOutputBuffer tmpPtr%u(&tmpBuf[%s], tmpPtr%uSize);\n",
-                                (unsigned) j,
+                                "\t\t\tOutputBuffer outptr_%s(&tmpBuf[%s], size_%s);\n",
+                                var_name,
                                 tmpBufOffset[j].c_str(),
-                                (unsigned) j);
+                                var_name);
                     } else if (pass == PASS_FunctionCall) {
                         if (v->nullAllowed()) {
                             fprintf(fp,
-                                    "tmpPtr%uSize == 0 ? NULL : (%s)(tmpPtr%u.get())",
-                                    (unsigned) j,
-                                    v->type()->name().c_str(),
-                                    (unsigned) j);
+                                    "size_%s == 0 ? NULL : (%s)(outptr_%s.get())",
+                                    var_name,
+                                    var_type_name,
+                                    var_name);
                         } else {
                             fprintf(fp,
-                                    "(%s)(tmpPtr%u.get())",
-                                    v->type()->name().c_str(),
-                                    (unsigned) j);
+                                    "(%s)(outptr_%s.get())",
+                                    var_type_name,
+                                    var_name);
                         }
                     } else if (pass == PASS_DebugPrint) {
                         fprintf(fp,
-                                "(%s)(tmpPtr%u.get()), (uint32_t)tmpPtr%uSize",
-                                v->type()->name().c_str(),
-                                (unsigned) j,
-                                (unsigned) j);
+                                "(%s)(outptr_%s.get()), size_%s",
+                                var_type_name,
+                                var_name,
+                                var_name);
                     }
                     if (pass == PASS_FlushOutput) {
                         fprintf(fp,
-                                "\t\t\ttmpPtr%u.flush();\n",
-                                (unsigned) j);
+                                "\t\t\toutptr_%s.flush();\n",
+                                var_name);
                     }
 #else  // !USE_ALIGNED_BUFFERS
                         fprintf(fp,
-                                "\t\t\tunsigned char *tmpPtr%u = &tmpBuf[%s];\n",
-                                (unsigned)j,
+                                "\t\t\tunsigned char *outptr_%s = &tmpBuf[%s];\n",
+                                var_name,
                                 tmpBufOffset[j].c_str());
                         fprintf(fp,
-                                "\t\t\tmemset(tmpPtr%u, 0, %s);\n",
-                                (unsigned)j,
+                                "\t\t\tmemset(outptr_%s, 0, %s);\n",
+                                var_name,
                                 toString(v->type()->bytes()).c_str());
                     } else if (pass == PASS_FunctionCall) {
                         if (v->nullAllowed()) {
                             fprintf(fp,
-                                    "tmpPtr%uSize == 0 ? NULL : (%s)(tmpPtr%u)",
-                                    (unsigned) j,
-                                    v->type()->name().c_str(),
-                                    (unsigned) j);
+                                    "size_%s == 0 ? NULL : (%s)(outptr_%s)",
+                                    var_name,
+                                    var_type_name,
+                                    var_name);
                         } else {
                             fprintf(fp,
-                                    "(%s)(tmpPtr%u)",
-                                    v->type()->name().c_str(),
-                                    (unsigned) j);
+                                    "(%s)(outptr_%s)",
+                                    var_type_name,
+                                    var_name);
                         }
                     } else if (pass == PASS_DebugPrint) {
                         fprintf(fp,
-                                "(%s)(tmpPtr%u), *(uint32_t *)(ptr + %s)",
-                                v->type()->name().c_str(),
-                                (unsigned) j,
+                                "(%s)(outptr_%s), size_%s",
+                                var_type_name,
+                                var_name,
                                 varoffset.c_str());
                     }
 #endif  // !USE_ALIGNED_BUFFERS
