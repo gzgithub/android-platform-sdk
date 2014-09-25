@@ -70,14 +70,14 @@ int GL2Decoder::initGL(get_proc_func_t getProcFunc, void *getProcFuncData)
         this->initDispatchByName(getProcFunc, getProcFuncData);
     }
 
-    set_glGetCompressedTextureFormats(s_glGetCompressedTextureFormats);
-    set_glVertexAttribPointerData(s_glVertexAttribPointerData);
-    set_glVertexAttribPointerOffset(s_glVertexAttribPointerOffset);
+    glGetCompressedTextureFormats = s_glGetCompressedTextureFormats;
+    glVertexAttribPointerData = s_glVertexAttribPointerData;
+    glVertexAttribPointerOffset = s_glVertexAttribPointerOffset;
 
-    set_glDrawElementsOffset(s_glDrawElementsOffset);
-    set_glDrawElementsData(s_glDrawElementsData);
-    set_glShaderString(s_glShaderString);
-    set_glFinishRoundTrip(s_glFinishRoundTrip);
+    glDrawElementsOffset = s_glDrawElementsOffset;
+    glDrawElementsData = s_glDrawElementsData;
+    glShaderString = s_glShaderString;
+    glFinishRoundTrip = s_glFinishRoundTrip;
     return 0;
 
 }

@@ -58,26 +58,26 @@ int GLDecoder::initGL(get_proc_func_t getProcFunc, void *getProcFuncData)
         this->initDispatchByName(getProcFunc, getProcFuncData);
     }
 
-    set_glGetCompressedTextureFormats(s_glGetCompressedTextureFormats);
-    set_glVertexPointerOffset(s_glVertexPointerOffset);
-    set_glColorPointerOffset(s_glColorPointerOffset);
-    set_glNormalPointerOffset(s_glNormalPointerOffset);
-    set_glTexCoordPointerOffset(s_glTexCoordPointerOffset);
-    set_glPointSizePointerOffset(s_glPointSizePointerOffset);
-    set_glWeightPointerOffset(s_glWeightPointerOffset);
-    set_glMatrixIndexPointerOffset(s_glMatrixIndexPointerOffset);
+    glGetCompressedTextureFormats = s_glGetCompressedTextureFormats;
+    glVertexPointerOffset = s_glVertexPointerOffset;
+    glColorPointerOffset = s_glColorPointerOffset;
+    glNormalPointerOffset = s_glNormalPointerOffset;
+    glTexCoordPointerOffset = s_glTexCoordPointerOffset;
+    glPointSizePointerOffset = s_glPointSizePointerOffset;
+    glWeightPointerOffset = s_glWeightPointerOffset;
+    glMatrixIndexPointerOffset = s_glMatrixIndexPointerOffset;
 
-    set_glVertexPointerData(s_glVertexPointerData);
-    set_glColorPointerData(s_glColorPointerData);
-    set_glNormalPointerData(s_glNormalPointerData);
-    set_glTexCoordPointerData(s_glTexCoordPointerData);
-    set_glPointSizePointerData(s_glPointSizePointerData);
-    set_glWeightPointerData(s_glWeightPointerData);
-    set_glMatrixIndexPointerData(s_glMatrixIndexPointerData);
+    glVertexPointerData = s_glVertexPointerData;
+    glColorPointerData = s_glColorPointerData;
+    glNormalPointerData = s_glNormalPointerData;
+    glTexCoordPointerData = s_glTexCoordPointerData;
+    glPointSizePointerData = s_glPointSizePointerData;
+    glWeightPointerData = s_glWeightPointerData;
+    glMatrixIndexPointerData = s_glMatrixIndexPointerData;
 
-    set_glDrawElementsOffset(s_glDrawElementsOffset);
-    set_glDrawElementsData(s_glDrawElementsData);
-    set_glFinishRoundTrip(s_glFinishRoundTrip);
+    glDrawElementsOffset = s_glDrawElementsOffset;
+    glDrawElementsData = s_glDrawElementsData;
+    glFinishRoundTrip = s_glFinishRoundTrip;
 
     return 0;
 }
