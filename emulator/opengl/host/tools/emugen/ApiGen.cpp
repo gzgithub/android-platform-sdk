@@ -30,6 +30,10 @@
  */
 #define WITH_LARGE_SUPPORT  1
 
+// Set to 1 to ensure buffers passed to/from EGL/GL are properly aligned.
+// This prevents crashes with certain backends (e.g. OSMesa).
+#define USE_ALIGNED_BUFFERS 1
+
 EntryPoint * ApiGen::findEntryByName(const std::string & name)
 {
     EntryPoint * entry = NULL;
@@ -786,7 +790,7 @@ int ApiGen::genDecoderImpl(const std::string &filename)
 \t\tswitch(opcode) {\n");
 
     for (size_t f = 0; f < n; f++) {
-        enum Pass_t { PASS_TmpBuffAlloc = 0, PASS_MemAlloc, PASS_DebugPrint, PASS_FunctionCall, PASS_Epilog, PASS_LAST };
+        enum Pass_t { PASS_TmpBuffAlloc = 0, PASS_MemAlloc, PASS_DebugPrint, PASS_FunctionCall, PASS_FlushOutput, PASS_Epilog, PASS_LAST };
         EntryPoint *e = &at(f);
 
         // construct a printout string;
@@ -859,7 +863,7 @@ int ApiGen::genDecoderImpl(const std::string &filename)
                         fprintf(fp,
                                 "Unpack<%s,uint%d_t>(ptr + %s)",
                                 v->type()->name().c_str(),
-                                v->type()->bytes() * 8,
+                                (unsigned) v->type()->bytes() * 8U,
                                 varoffset.c_str());
                     }
                     varoffset += " + " + toString(v->type()->bytes());
@@ -868,12 +872,39 @@ int ApiGen::genDecoderImpl(const std::string &filename)
 
                 if (v->pointerDir() == Var::POINTER_IN ||
                     v->pointerDir() == Var::POINTER_INOUT) {
-                    if (pass == PASS_MemAlloc &&
-                        v->pointerDir() == Var::POINTER_INOUT) {
+                    if (pass == PASS_MemAlloc) {
                         fprintf(fp,
                                 "\t\t\tsize_t tmpPtr%uSize = (size_t)*(uint32_t *)(ptr + %s);\n",
                                 (unsigned) j,
                                 varoffset.c_str());
+#if USE_ALIGNED_BUFFERS
+                        fprintf(fp,
+                                "\t\t\tInputBuffer tmpPtr%u(ptr + %s + 4, tmpPtr%uSize);\n",
+                                (unsigned) j,
+                                varoffset.c_str(),
+                                (unsigned) j);
+                    }
+                    if (pass == PASS_FunctionCall) {
+                        if (v->nullAllowed()) {
+                            fprintf(fp,
+                                    "tmpPtr%uSize == 0 ? NULL : (%s)(tmpPtr%u.get())",
+                                    (unsigned) j,
+                                    v->type()->name().c_str(),
+                                    (unsigned) j);
+                        } else {
+                            fprintf(fp,
+                                    "(%s)(tmpPtr%u.get())",
+                                    v->type()->name().c_str(),
+                                    (unsigned) j);
+                        }
+                    } else if (pass == PASS_DebugPrint) {
+                        fprintf(fp,
+                                "(%s)(tmpPtr%u.get()), (uint32_t)tmpPtr%uSize",
+                                v->type()->name().c_str(),
+                                (unsigned) j,
+                                (unsigned) j);
+                    }
+#else  // !USE_ALIGNED_BUFFERS
                         fprintf(fp,
                                 "unsigned char *tmpPtr%u = (ptr + %s + 4);\n",
                                 (unsigned) j,
@@ -899,6 +930,7 @@ int ApiGen::genDecoderImpl(const std::string &filename)
                                 varoffset.c_str(),
                                 varoffset.c_str());
                     }
+#endif  // !USE_ALIGNED_BUFFERS
                     varoffset +=
                             " + 4 + *(tsize_t *)(ptr +" + varoffset + ")";
                 } else { // out pointer;
@@ -922,6 +954,38 @@ int ApiGen::genDecoderImpl(const std::string &filename)
                         totalTmpBuffOffset += std::string(tmpPtrName);
                         totalTmpBuffExist = true;
                     } else if (pass == PASS_MemAlloc) {
+#if USE_ALIGNED_BUFFERS
+                        fprintf(fp,
+                                "\t\t\tOutputBuffer tmpPtr%u(&tmpBuf[%s], tmpPtr%uSize);\n",
+                                (unsigned) j,
+                                tmpBufOffset[j].c_str(),
+                                (unsigned) j);
+                    } else if (pass == PASS_FunctionCall) {
+                        if (v->nullAllowed()) {
+                            fprintf(fp,
+                                    "tmpPtr%uSize == 0 ? NULL : (%s)(tmpPtr%u.get())",
+                                    (unsigned) j,
+                                    v->type()->name().c_str(),
+                                    (unsigned) j);
+                        } else {
+                            fprintf(fp,
+                                    "(%s)(tmpPtr%u.get())",
+                                    v->type()->name().c_str(),
+                                    (unsigned) j);
+                        }
+                    } else if (pass == PASS_DebugPrint) {
+                        fprintf(fp,
+                                "(%s)(tmpPtr%u.get()), (uint32_t)tmpPtr%uSize",
+                                v->type()->name().c_str(),
+                                (unsigned) j,
+                                (unsigned) j);
+                    }
+                    if (pass == PASS_FlushOutput) {
+                        fprintf(fp,
+                                "\t\t\ttmpPtr%u.flush();\n",
+                                (unsigned) j);
+                    }
+#else  // !USE_ALIGNED_BUFFERS
                         fprintf(fp,
                                 "\t\t\tunsigned char *tmpPtr%u = &tmpBuf[%s];\n",
                                 (unsigned)j,
@@ -950,6 +1014,7 @@ int ApiGen::genDecoderImpl(const std::string &filename)
                                 (unsigned) j,
                                 varoffset.c_str());
                     }
+#endif  // !USE_ALIGNED_BUFFERS
                     varoffset += " + 4";
                 }
             }
