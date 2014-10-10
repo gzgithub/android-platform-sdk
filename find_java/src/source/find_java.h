@@ -26,7 +26,7 @@
 #define MIN_JAVA_VERSION_MINOR 6
 #define MIN_JAVA_VERSION (MIN_JAVA_VERSION_MAJOR * 1000 + MIN_JAVA_VERSION_MINOR)
 
-
+int checkJavaInPath(const CPath &path);
 int findJavaInEnvPath(CPath *outJavaPath);
 int findJavaInRegistry(CPath *outJavaPath);
 int findJavaInProgramFiles(CPath *outJavaPath);
