@@ -99,6 +99,22 @@ static int checkBinPath(CPath *inOutPath) {
     return checkPath(inOutPath);
 }
 
+// Test for the existence of java.exe in a custom path
+int checkJavaInPath(const CPath &path) {
+    SetLastError(0);
+
+    int currVersion = 0;
+    CPath temp(path);
+    currVersion = checkBinPath(&temp);
+    if (currVersion > 0) {
+        if (gIsDebug) {
+            fprintf(stderr, "Java %d found in path: %s\n", currVersion, temp.cstr());
+        }
+    }
+
+    return currVersion;
+}
+
 // Search java.exe in the environment
 int findJavaInEnvPath(CPath *outJavaPath) {
     SetLastError(0);
