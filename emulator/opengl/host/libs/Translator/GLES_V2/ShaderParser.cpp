@@ -36,6 +36,7 @@ ShaderParser::ShaderParser(GLenum type):ObjectData(SHADER_DATA),
 };
 
 void ShaderParser::setSrc(const Version& ver,GLsizei count,const GLchar** strings,const GLint* length){
+    m_src.clear();
     for(int i = 0;i<count;i++){
         m_src.append(strings[i]);
     }
