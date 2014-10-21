@@ -258,7 +258,7 @@ glTexParameteriv
 #void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid *pixels)
 glTexSubImage2D
 	len pixels pixelDataSize(self, width, height, format, type, 0)
-        var_flag pixels isLarge
+        var_flag pixels nullAllowed isLarge
 	
 #void glUniform1fv(GLint location, GLsizei count, GLfloat *v)
 glUniform1fv
