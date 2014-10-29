@@ -52,7 +52,10 @@ void FramebufferData::setAttachment(GLenum attachment,
                ObjectDataPtr obj,
                bool takeOwnership) {
 int idx = attachmentPointIndex(attachment);
-
+    if (!name) {
+        detachObject(idx);
+        return;
+    }
     if (m_attachPoints[idx].target != target ||
         m_attachPoints[idx].name != name ||
         m_attachPoints[idx].obj.Ptr() != obj.Ptr() ||
