@@ -151,6 +151,7 @@ glGetProgramInfoLog
 	len infolog bufsize
 	dir length out
 	len length sizeof(GLsizei)
+	var_flag length nullAllowed
 
 #void glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint *params)
 glGetRenderbufferParameteriv
