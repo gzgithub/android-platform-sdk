@@ -116,6 +116,27 @@ GL_APICALL GLESiface* __translator_getIfaces(EGLiface* eglIface){
 
 }
 
+static void s_attachShader(GLEScontext* ctx, GLuint program, GLuint shader) {
+    if (ctx && program && shader && ctx->shareGroup().Ptr()) {
+        ObjectDataPtr shaderData = ctx->shareGroup()->getObjectData(SHADER,shader);
+        if (!shaderData.Ptr()) return;
+        ShaderParser* shaderParser = (ShaderParser*)shaderData.Ptr();
+        shaderParser->setAttachedProgram(program);
+    }
+}
+
+static void s_detachShader(GLEScontext* ctx, GLuint shader) {
+    if (ctx && shader && ctx->shareGroup().Ptr()) {
+        ObjectDataPtr shaderData = ctx->shareGroup()->getObjectData(SHADER,shader);
+        if (!shaderData.Ptr()) return;
+        ShaderParser* shaderParser = (ShaderParser*)shaderData.Ptr();
+        shaderParser->setAttachedProgram(0);
+        if (shaderParser->getDeleteStatus()) {
+            ctx->shareGroup()->deleteName(SHADER, shader);
+        }
+    }
+}
+
 static ObjectLocalName TextureLocalName(GLenum target,unsigned int tex) {
     GET_CTX_RET(0);
     return (tex!=0? tex : ctx->getDefaultTextureName(target));
@@ -165,6 +186,7 @@ GL_APICALL void  GL_APIENTRY glAttachShader(GLuint program, GLuint shader){
         ProgramData* pData = (ProgramData*)programData.Ptr();
         SET_ERROR_IF((pData->getAttachedShader(shaderType)!=0), GL_INVALID_OPERATION);
         pData->attachShader(shader,shaderType);
+        s_attachShader(ctx, program, shader);
         ctx->dispatcher().glAttachShader(globalProgramName,globalShaderName);
     }
 }
@@ -493,6 +515,12 @@ GL_APICALL void  GL_APIENTRY glDeleteProgram(GLuint program){
     if(program && ctx->shareGroup().Ptr()) {
         const GLuint globalProgramName = ctx->shareGroup()->getGlobalName(SHADER,program);
         SET_ERROR_IF(!globalProgramName, GL_INVALID_VALUE);
+
+        ObjectDataPtr programData = ctx->shareGroup()->getObjectData(SHADER,program);
+        ProgramData* pData = (ProgramData*)programData.Ptr();
+        s_detachShader(ctx, pData->getAttachedVertexShader());
+        s_detachShader(ctx, pData->getAttachedFragmentShader());
+
         ctx->shareGroup()->deleteName(SHADER,program);
         ctx->dispatcher().glDeleteProgram(globalProgramName);
     }
@@ -503,7 +531,15 @@ GL_APICALL void  GL_APIENTRY glDeleteShader(GLuint shader){
     if(shader && ctx->shareGroup().Ptr()) {
         const GLuint globalShaderName = ctx->shareGroup()->getGlobalName(SHADER,shader);
         SET_ERROR_IF(!globalShaderName, GL_INVALID_VALUE);
-        ctx->shareGroup()->deleteName(SHADER,shader);
+        ObjectDataPtr objData = ctx->shareGroup()->getObjectData(SHADER,shader);
+        SET_ERROR_IF(!objData.Ptr() ,GL_INVALID_OPERATION);
+        SET_ERROR_IF(objData.Ptr()->getDataType()!=SHADER_DATA,GL_INVALID_OPERATION);
+        ShaderParser* sp = (ShaderParser*)objData.Ptr();
+        if (sp->getAttachedProgram()) {
+            sp->setDeleteStatus(true);
+        } else {
+            ctx->shareGroup()->deleteName(SHADER,shader);
+        }
         ctx->dispatcher().glDeleteShader(globalShaderName);
     }
         
@@ -537,6 +573,8 @@ GL_APICALL void  GL_APIENTRY glDetachShader(GLuint program, GLuint shader){
         ProgramData* programData = (ProgramData*)objData.Ptr();
         SET_ERROR_IF(!programData->isAttached(shader),GL_INVALID_OPERATION);
         programData->detachShader(shader);
+
+        s_detachShader(ctx, shader);
 
         ctx->dispatcher().glDetachShader(globalProgramName,globalShaderName);
     }
@@ -1221,6 +1259,15 @@ GL_APICALL void  GL_APIENTRY glGetShaderiv(GLuint shader, GLenum pname, GLint* p
     GET_CTX();
     if(ctx->shareGroup().Ptr()) {
         const GLuint globalShaderName = ctx->shareGroup()->getGlobalName(SHADER,shader);
+        if (pname == GL_DELETE_STATUS) {
+            SET_ERROR_IF(globalShaderName == 0, GL_INVALID_VALUE);
+            ObjectDataPtr objData = ctx->shareGroup()->getObjectData(SHADER,shader);
+            SET_ERROR_IF(!objData.Ptr() ,GL_INVALID_VALUE);
+            SET_ERROR_IF(objData.Ptr()->getDataType()!=SHADER_DATA,GL_INVALID_VALUE);
+            ShaderParser* sp = (ShaderParser*)objData.Ptr();
+            params[0]  = (sp->getDeleteStatus()) ? GL_TRUE : GL_FALSE;
+            return;
+        }
         SET_ERROR_IF(globalShaderName==0, GL_INVALID_VALUE);
         switch(pname) {
         case GL_INFO_LOG_LENGTH:
