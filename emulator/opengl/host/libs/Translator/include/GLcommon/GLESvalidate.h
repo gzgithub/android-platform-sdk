@@ -25,6 +25,7 @@ static bool pixelType(GLEScontext * ctx,GLenum type);
 static bool pixelOp(GLenum format,GLenum type);
 static bool pixelFrmt(GLEScontext* ctx , GLenum format);
 static bool bufferTarget(GLenum target);
+static bool bufferUsage(GLenum usage);
 static bool bufferParam(GLenum param);
 static bool drawMode(GLenum mode);
 static bool drawType(GLenum mode);
