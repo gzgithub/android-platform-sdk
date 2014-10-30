@@ -9,7 +9,10 @@
 
 
 #include <stdio.h>
-static void enc_unsupported()
+
+namespace {
+
+void enc_unsupported()
 {
 	ALOGE("Function is unsupported\n");
 }
@@ -51,12 +54,14 @@ FooBoolean fooIsBuffer_enc(void *self , void* stuff)
 	return retval;
 }
 
+}  // namespace
+
 foo_encoder_context_t::foo_encoder_context_t(IOStream *stream)
 {
 	m_stream = stream;
 
-	fooAlphaFunc = (fooAlphaFunc_enc);
-	fooIsBuffer = (fooIsBuffer_enc);
-	fooUnsupported = (fooUnsupported_client_proc_t)(enc_unsupported);
+	this->fooAlphaFunc = &fooAlphaFunc_enc;
+	this->fooIsBuffer = &fooIsBuffer_enc;
+	this->fooUnsupported = (fooUnsupported_client_proc_t) &enc_unsupported;
 }
 
