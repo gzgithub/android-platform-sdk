@@ -4,7 +4,7 @@
 #define __foo_client_ftable_t_h
 
 
-static struct _foo_funcs_by_name {
+static const struct _foo_funcs_by_name {
 	const char *name;
 	void *proc;
 } foo_funcs_by_name[] = {
@@ -12,7 +12,7 @@ static struct _foo_funcs_by_name {
 	{"fooIsBuffer", (void*)fooIsBuffer},
 	{"fooUnsupported", (void*)fooUnsupported},
 };
-static int foo_num_funcs = sizeof(foo_funcs_by_name) / sizeof(struct _foo_funcs_by_name);
+static const int foo_num_funcs = sizeof(foo_funcs_by_name) / sizeof(struct _foo_funcs_by_name);
 
 
 #endif
