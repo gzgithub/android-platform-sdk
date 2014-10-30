@@ -15,6 +15,8 @@
 */
 #include "NativeSubWindow.h"
 
+#include <stdio.h>
+
 static Bool WaitForMapNotify(Display *d, XEvent *e, char *arg)
 {
     if (e->type == MapNotify && e->xmap.window == (Window)arg) {
