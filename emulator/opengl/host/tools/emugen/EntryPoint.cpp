@@ -35,6 +35,7 @@ void EntryPoint::reset()
     m_unsupported = false;
     m_customDecoder = false;
     m_notApi = false;
+    m_flushOnEncode = false;
     m_vars.empty();
 }
 
@@ -365,6 +366,8 @@ int EntryPoint::setAttribute(const std::string &line, size_t lc)
             setCustomDecoder(true);
         } else if (flag == "not_api") {
             setNotApi(true);
+        } else if (flag == "flushOnEncode") {
+            setFlushOnEncode(true);
         } else {
             fprintf(stderr, "WARNING: %u: unknown flag %s\n", (unsigned int)lc, flag.c_str());
         }
