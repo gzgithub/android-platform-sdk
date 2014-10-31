@@ -1707,7 +1707,7 @@ GL_APICALL void  GL_APIENTRY glShaderBinary(GLsizei n, const GLuint* shaders, GL
     }
 }
 
-GL_APICALL void  GL_APIENTRY glShaderSource(GLuint shader, GLsizei count, const GLchar** string, const GLint* length){
+GL_APICALL void  GL_APIENTRY glShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length){
     GET_CTX_V2();
     SET_ERROR_IF(count < 0,GL_INVALID_VALUE);
     if(ctx->shareGroup().Ptr()){
