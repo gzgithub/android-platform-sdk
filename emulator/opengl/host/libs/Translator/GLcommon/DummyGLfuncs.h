@@ -258,7 +258,7 @@
     void GL_APIENTRY dummy_glReleaseShaderCompiler(void);
     void GL_APIENTRY dummy_glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
     void GL_APIENTRY dummy_glShaderBinary(GLsizei n, const GLuint* shaders, GLenum binaryformat, const GLvoid* binary, GLsizei length);
-    void GL_APIENTRY dummy_glShaderSource(GLuint shader, GLsizei count, const GLchar** string, const GLint* length);
+    void GL_APIENTRY dummy_glShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length);
     void GL_APIENTRY dummy_glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
     void GL_APIENTRY dummy_glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
 
