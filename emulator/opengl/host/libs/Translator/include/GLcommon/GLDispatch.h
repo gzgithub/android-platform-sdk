@@ -257,7 +257,7 @@ public:
     static int  (GL_APIENTRY *glGetUniformLocation)(GLuint program, const GLchar* name);
     static void (GL_APIENTRY *glReleaseShaderCompiler)(void);
     static void (GL_APIENTRY *glShaderBinary)(GLsizei n, const GLuint* shaders, GLenum binaryformat, const GLvoid* binary, GLsizei length);
-    static void (GL_APIENTRY *glShaderSource)(GLuint shader, GLsizei count, const GLchar** string, const GLint* length);
+    static void (GL_APIENTRY *glShaderSource)(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length);
 
 private:
     bool                  m_isLoaded;

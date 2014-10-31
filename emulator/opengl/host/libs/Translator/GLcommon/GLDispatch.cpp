@@ -293,7 +293,7 @@ void (GL_APIENTRY *GLDispatch::glGetUniformiv)(GLuint,GLint,GLint*) = NULL;
 int  (GL_APIENTRY *GLDispatch::glGetUniformLocation)(GLuint,const GLchar*) = NULL;
 void (GL_APIENTRY *GLDispatch::glReleaseShaderCompiler)() = NULL;
 void (GL_APIENTRY *GLDispatch::glShaderBinary)(GLsizei,const GLuint*,GLenum,const GLvoid*,GLsizei) = NULL;
-void (GL_APIENTRY *GLDispatch::glShaderSource)(GLuint,GLsizei,const GLchar**,const GLint*) = NULL;
+void (GL_APIENTRY *GLDispatch::glShaderSource)(GLuint,GLsizei,const GLchar* const*,const GLint*) = NULL;
 
 GLDispatch::GLDispatch():m_isLoaded(false){};
 
