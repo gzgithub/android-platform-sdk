@@ -11,6 +11,7 @@ struct foo_wrapper_context_t {
 	fooAlphaFunc_wrapper_proc_t fooAlphaFunc;
 	fooIsBuffer_wrapper_proc_t fooIsBuffer;
 	fooUnsupported_wrapper_proc_t fooUnsupported;
+	fooDoEncoderFlush_wrapper_proc_t fooDoEncoderFlush;
 	 virtual ~foo_wrapper_context_t() {}
 
 	typedef foo_wrapper_context_t *CONTEXT_ACCESSOR_TYPE(void);
