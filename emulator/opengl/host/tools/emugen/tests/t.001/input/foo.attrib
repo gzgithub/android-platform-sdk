@@ -10,3 +10,6 @@ fooIsBuffer
 fooUnsupported
     dir params in
     flag unsupported
+
+fooDoEncoderFlush
+    flag flushOnEncode

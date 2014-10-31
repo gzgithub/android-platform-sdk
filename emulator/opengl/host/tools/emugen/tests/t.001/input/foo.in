@@ -1,3 +1,4 @@
 FOO_ENTRY(void, fooAlphaFunc, FooInt func, FooFloat ref)
 FOO_ENTRY(FooBoolean, fooIsBuffer, void* stuff)
 FOO_ENTRY(void, fooUnsupported, void* params)
+FOO_ENTRY(void, fooDoEncoderFlush, FooInt param)

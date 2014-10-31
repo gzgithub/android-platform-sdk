@@ -13,6 +13,7 @@ int foo_wrapper_context_t::initDispatchByName(void *(*getProc)(const char *, voi
 	fooAlphaFunc = (fooAlphaFunc_wrapper_proc_t) getProc("fooAlphaFunc", userData);
 	fooIsBuffer = (fooIsBuffer_wrapper_proc_t) getProc("fooIsBuffer", userData);
 	fooUnsupported = (fooUnsupported_wrapper_proc_t) getProc("fooUnsupported", userData);
+	fooDoEncoderFlush = (fooDoEncoderFlush_wrapper_proc_t) getProc("fooDoEncoderFlush", userData);
 	return 0;
 }
 

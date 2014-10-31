@@ -54,6 +54,22 @@ FooBoolean fooIsBuffer_enc(void *self , void* stuff)
 	return retval;
 }
 
+void fooDoEncoderFlush_enc(void *self , FooInt param)
+{
+
+	foo_encoder_context_t *ctx = (foo_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+
+	 unsigned char *ptr;
+	 const size_t packetSize = 8 + 4;
+	ptr = stream->alloc(packetSize);
+	int tmp = OP_fooDoEncoderFlush;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &packetSize, 4);  ptr += 4;
+
+		memcpy(ptr, &param, 4); ptr += 4;
+	stream->flush();
+}
+
 }  // namespace
 
 foo_encoder_context_t::foo_encoder_context_t(IOStream *stream)
@@ -63,5 +79,6 @@ foo_encoder_context_t::foo_encoder_context_t(IOStream *stream)
 	this->fooAlphaFunc = &fooAlphaFunc_enc;
 	this->fooIsBuffer = &fooIsBuffer_enc;
 	this->fooUnsupported = (fooUnsupported_client_proc_t) &enc_unsupported;
+	this->fooDoEncoderFlush = &fooDoEncoderFlush_enc;
 }
 
