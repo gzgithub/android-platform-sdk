@@ -546,6 +546,10 @@ GL_APICALL void  GL_APIENTRY glDeleteProgram(GLuint program){
 
         ObjectDataPtr programData = ctx->shareGroup()->getObjectData(SHADER,program);
         ProgramData* pData = (ProgramData*)programData.Ptr();
+        if (pData && pData->isInUse()) {
+            pData->setDeleteStatus(true);
+            return;
+        }
         s_detachShader(ctx, pData->getAttachedVertexShader());
         s_detachShader(ctx, pData->getAttachedFragmentShader());
 
@@ -1215,6 +1219,15 @@ GL_APICALL void  GL_APIENTRY glGetProgramiv(GLuint program, GLenum pname, GLint*
         const GLuint globalProgramName = ctx->shareGroup()->getGlobalName(SHADER,program);
         SET_ERROR_IF(globalProgramName==0, GL_INVALID_VALUE);
         switch(pname) {
+        case GL_DELETE_STATUS:
+            {
+                ObjectDataPtr objData = ctx->shareGroup()->getObjectData(SHADER,program);
+                SET_ERROR_IF(!objData.Ptr() ,GL_INVALID_OPERATION);
+                SET_ERROR_IF(objData.Ptr()->getDataType()!=PROGRAM_DATA,GL_INVALID_OPERATION);
+                ProgramData* programData = (ProgramData*)objData.Ptr();
+                params[0] = programData->getDeleteStatus() ? GL_TRUE : GL_FALSE;
+            }
+            break;
         case GL_LINK_STATUS:
             {
                 ObjectDataPtr objData = ctx->shareGroup()->getObjectData(SHADER,program);
@@ -1991,6 +2004,19 @@ GL_APICALL void  GL_APIENTRY glUniformMatrix4fv(GLint location, GLsizei count, G
     ctx->dispatcher().glUniformMatrix4fv(location,count,transpose,value);
 }
 
+static void s_unUseCurrentProgram() {
+    GET_CTX();
+    GLint localCurrentProgram = 0;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &localCurrentProgram);
+    if (!localCurrentProgram) return;
+
+    ObjectDataPtr objData = ctx->shareGroup()->getObjectData(SHADER,localCurrentProgram);
+    SET_ERROR_IF(objData.Ptr()->getDataType()!=PROGRAM_DATA,GL_INVALID_OPERATION);
+    ProgramData* programData = (ProgramData*)objData.Ptr();
+    programData->setInUse(false);
+    if (programData->getDeleteStatus()) { glDeleteProgram(localCurrentProgram); }
+}
+
 GL_APICALL void  GL_APIENTRY glUseProgram(GLuint program){
     GET_CTX();
     if(ctx->shareGroup().Ptr()) {
@@ -1998,6 +2024,12 @@ GL_APICALL void  GL_APIENTRY glUseProgram(GLuint program){
         SET_ERROR_IF(program!=0 && globalProgramName==0,GL_INVALID_VALUE);
         ObjectDataPtr objData = ctx->shareGroup()->getObjectData(SHADER,program);
         SET_ERROR_IF(objData.Ptr() && (objData.Ptr()->getDataType()!=PROGRAM_DATA),GL_INVALID_OPERATION);
+
+        s_unUseCurrentProgram();
+
+        ProgramData* programData = (ProgramData*)objData.Ptr();
+        if (programData) programData->setInUse(true);
+
         ctx->dispatcher().glUseProgram(globalProgramName);
     }
 }
