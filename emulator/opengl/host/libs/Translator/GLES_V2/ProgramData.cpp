@@ -20,7 +20,9 @@
 ProgramData::ProgramData() :  ObjectData(PROGRAM_DATA),
                               AttachedVertexShader(0),
                               AttachedFragmentShader(0),
-                              LinkStatus(GL_FALSE) {
+                              LinkStatus(GL_FALSE),
+                              IsInUse(false),
+                              DeleteStatus(false) {
     infoLog = new GLchar[1];
     infoLog[0] = '\0';
 }
