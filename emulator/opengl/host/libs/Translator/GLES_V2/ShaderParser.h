@@ -35,6 +35,11 @@ public:
     void setInfoLog(GLchar * infoLog);
     GLchar* getInfoLog();
 
+    void setDeleteStatus(bool val) { m_deleteStatus = val; }
+    bool getDeleteStatus() const { return m_deleteStatus; }
+
+    void setAttachedProgram(GLuint program) { m_program = program; }
+    GLuint getAttachedProgram() const { return m_program; }
 private:
     void parseOriginalSrc();
     void parseGLSLversion();
@@ -50,5 +55,7 @@ private:
     std::string m_parsedSrc;
     GLchar*     m_parsedLines;
     GLchar*     m_infoLog;
+    bool        m_deleteStatus;
+    GLuint      m_program;
 };
 #endif
