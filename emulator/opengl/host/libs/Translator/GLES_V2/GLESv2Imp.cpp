@@ -1101,7 +1101,10 @@ GL_APICALL void  GL_APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target
             FramebufferData *fbData = (FramebufferData *)fbObj.Ptr();
             GLenum target;
             GLuint name = fbData->getAttachment(attachment, &target, NULL);
-            SET_ERROR_IF(!name && pname != GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, GL_INVALID_ENUM);
+            if (!name) {
+                SET_ERROR_IF(pname != GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE &&
+                        pname != GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, GL_INVALID_ENUM);
+            }
             if (pname == GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE) {
                 if (target == GL_TEXTURE_2D) {
                     *params = GL_TEXTURE;
@@ -1110,6 +1113,8 @@ GL_APICALL void  GL_APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target
                 else if (target == GL_RENDERBUFFER) {
                     *params = GL_RENDERBUFFER;
                     return;
+                } else {
+                    *params = GL_NONE;
                 }
             }
             else if (pname == GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME) {
@@ -1440,10 +1445,15 @@ GL_APICALL int GL_APIENTRY glGetUniformLocation(GLuint program, const GLchar* na
     return -1;
 }
 
-
+static bool s_invalidVertexAttribIndex(GLuint index) {
+    GLint param=0;
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &param);
+    return (param < 0 || index >= (GLuint)param);
+}
 
 GL_APICALL void  GL_APIENTRY glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat* params){
     GET_CTX_V2();
+    SET_ERROR_IF(s_invalidVertexAttribIndex(index), GL_INVALID_VALUE);
     const GLESpointer* p = ctx->getPointer(index);
     if(p) {
         switch(pname){
@@ -1485,6 +1495,7 @@ GL_APICALL void  GL_APIENTRY glGetVertexAttribfv(GLuint index, GLenum pname, GLf
 
 GL_APICALL void  GL_APIENTRY glGetVertexAttribiv(GLuint index, GLenum pname, GLint* params){
     GET_CTX_V2();
+    SET_ERROR_IF(s_invalidVertexAttribIndex(index), GL_INVALID_VALUE);
     const GLESpointer* p = ctx->getPointer(index);
     if(p) {
         switch(pname){
@@ -1561,7 +1572,8 @@ GL_APICALL GLboolean    GL_APIENTRY glIsBuffer(GLuint buffer){
 GL_APICALL GLboolean    GL_APIENTRY glIsFramebuffer(GLuint framebuffer){
     GET_CTX_RET(GL_FALSE)
     if(framebuffer && ctx->shareGroup().Ptr()){
-        return ctx->shareGroup()->isObject(FRAMEBUFFER,framebuffer) ? GL_TRUE :GL_FALSE;
+        return (ctx->shareGroup()->isObject(FRAMEBUFFER,framebuffer) &&
+            ctx->getFramebufferBinding() == framebuffer) ? GL_TRUE :GL_FALSE;
     }
     return GL_FALSE;
 }
@@ -1569,7 +1581,8 @@ GL_APICALL GLboolean    GL_APIENTRY glIsFramebuffer(GLuint framebuffer){
 GL_APICALL GLboolean    GL_APIENTRY glIsRenderbuffer(GLuint renderbuffer){
     GET_CTX_RET(GL_FALSE)
     if(renderbuffer && ctx->shareGroup().Ptr()){
-        return ctx->shareGroup()->isObject(RENDERBUFFER,renderbuffer) ? GL_TRUE :GL_FALSE;
+        return (ctx->shareGroup()->isObject(RENDERBUFFER,renderbuffer) &&
+                ctx->getRenderbufferBinding() == renderbuffer) ? GL_TRUE :GL_FALSE;
     }
     return GL_FALSE;
 }
@@ -1661,7 +1674,9 @@ GL_APICALL void  GL_APIENTRY glPolygonOffset(GLfloat factor, GLfloat units){
 GL_APICALL void  GL_APIENTRY glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels){
     GET_CTX();
     SET_ERROR_IF(!(GLESv2Validate::readPixelFrmt(format) && GLESv2Validate::pixelType(ctx,type)),GL_INVALID_ENUM);
+    SET_ERROR_IF((width < 0 || height < 0),GL_INVALID_VALUE);
     SET_ERROR_IF(!(GLESv2Validate::pixelOp(format,type)),GL_INVALID_OPERATION);
+    SET_ERROR_IF(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
     ctx->dispatcher().glReadPixels(x,y,width,height,format,type,pixels);
 }
 
@@ -1777,6 +1792,14 @@ GL_APICALL void  GL_APIENTRY glStencilOp(GLenum fail, GLenum zfail, GLenum zpass
 
 GL_APICALL void  GL_APIENTRY glStencilOpSeparate(GLenum face, GLenum fail, GLenum zfail, GLenum zpass){
     GET_CTX();
+    switch (face) {
+        case GL_FRONT:
+        case GL_BACK:
+        case GL_FRONT_AND_BACK:
+            break;
+        default:
+            SET_ERROR_IF(1, GL_INVALID_ENUM);
+    }
     ctx->dispatcher().glStencilOp(fail,zfail,zpass);
 }
 
