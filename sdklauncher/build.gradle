@@ -2,16 +2,16 @@ apply plugin: 'c'
 apply plugin: 'sdk-files'
 apply plugin: 'windows-setup'
 
-executables {
-    sdkLauncher {}
-}
-
-sources {
-    sdkLauncher {
-        c {
-            source {
-                srcDir "src/source"
-                include "**/*.c"
+model {
+    components {
+        sdkLauncher(NativeExecutableSpec) {
+            sources {
+                c {
+                    source {
+                        srcDir "src/source"
+                        include "**/*.c"
+                    }
+                }
             }
         }
     }
@@ -29,7 +29,7 @@ sdk {
 
 def getExeName(String name) {
     // binaries will return a set of binaries
-    def binaries = executables.sdkLauncher.binaries.matching { it.name == name }
+    def binaries = components.sdkLauncher.binaries.matching { it.name == name }
     // calling .exeFile on the set returns an array with the result from each item in the set...
     return binaries.executableFile.get(0)
 }

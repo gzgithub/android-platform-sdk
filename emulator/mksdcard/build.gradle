@@ -2,16 +2,16 @@ apply plugin: 'c'
 apply plugin: 'sdk-files'
 apply plugin: 'native-setup'
 
-executables {
-    mksdcard {}
-}
-
-sources {
-    mksdcard {
-        c {
-            source {
-                srcDir "src/source"
-                include "**/*.c"
+model {
+    components {
+        mksdcard(NativeExecutableSpec) {
+            sources {
+                c {
+                    source {
+                        srcDir "src/source"
+                        include "**/*.c"
+                    }
+                }
             }
         }
     }
@@ -44,7 +44,7 @@ sdk {
 
 def getExeName(String platform) {
     // binaries will return a set of binaries
-    def binaries = executables.mksdcard.binaries.matching { it.name == "${platform}MksdcardExecutable" }
+    def binaries = components.mksdcard.binaries.matching { it.name == "${platform}MksdcardExecutable" }
     // calling .exeFile on the set returns an array with the result from each item in the set...
     return binaries.executableFile.get(0)
 }
