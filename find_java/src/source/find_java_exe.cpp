@@ -48,13 +48,14 @@ static int showHelpMessage() {
         "Outputs the path of the first Java.exe found on the local system.\n"
         "Returns code 0 when found, 1 when not found.\n"
         "Options:\n"
-        "-h / -help   : This help.\n"
-        "-t / -test   : Internal test.\n"
-        "-e / -error  : Print an error message to the console if Java.exe isn't found.\n"
-        "-j / -jdk    : Only returns java.exe found in a JDK.\n"
-        "-s / -short  : Print path in short DOS form.\n"
-        "-w / -javaw  : Search a matching javaw.exe; defaults to java.exe if not found.\n"
-        "-m / -minv # : Pass in a minimum version to use (default: 1.6).\n"
+        "-h / -help       : This help.\n"
+        "-t / -test       : Internal test.\n"
+        "-e / -error      : Print an error message to the console if Java.exe isn't found.\n"
+        "-j / -jdk        : Only returns java.exe found in a JDK.\n"
+        "-s / -short      : Print path in short DOS form.\n"
+        "-p / -path `dir` : A custom path to search first. Pass in JDK base dir if -j is set.\n"
+        "-w / -javaw      : Search a matching javaw.exe; defaults to java.exe if not found.\n"
+        "-m / -minv #     : Pass in a minimum version to use (default: 1.6).\n"
         "-v / -version: Only prints the Java version found.\n"
     );
     return 2;
@@ -118,6 +119,7 @@ int main(int argc, char* argv[]) {
     bool isJdk = false;
     bool shouldPrintError = false;
     int minVersion = MIN_JAVA_VERSION;
+    const char *customPathStr = NULL;
 
     for (int i = 1; i < argc; i++) {
         if (strncmp(argv[i], "-t", 2) == 0) {
@@ -130,6 +132,12 @@ int main(int argc, char* argv[]) {
         } else if (strncmp(argv[i], "-e", 2) == 0) {
             shouldPrintError = true;
 
+        } else if (strncmp(argv[i], "-p", 2) == 0) {
+            i++;
+            if (i == argc) {
+                return showHelpMessage();
+            }
+            customPathStr = argv[i];
         } else if (strncmp(argv[i], "-d", 2) == 0) {
             gIsDebug = true;
 
@@ -157,7 +165,15 @@ int main(int argc, char* argv[]) {
 
     // Find the first suitable version of Java we can use.
     CPath javaPath;
-    int version = findJavaInEnvPath(&javaPath, isJdk, minVersion);
+
+    int version = 0;
+    if (customPathStr != NULL) {
+        CPath customPath(customPathStr);
+        version = findJavaInPath(customPath, &javaPath, isJdk, minVersion);
+    }
+    if (version == 0) {
+        version = findJavaInEnvPath(&javaPath, isJdk, minVersion);
+    }
     if (version == 0) {
         version = findJavaInRegistry(&javaPath, isJdk, minVersion);
     }
