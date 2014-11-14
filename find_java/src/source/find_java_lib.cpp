@@ -35,6 +35,17 @@
 typedef LONG LSTATUS;
 #endif
 
+// Check to see if the application is running in 32-bit or 64-bit mode. In other words, this will
+// return false if you run a 32-bit build even on a 64-bit machine.
+static bool isApplication64() {
+    SYSTEM_INFO sysInfo;
+    GetSystemInfo(&sysInfo);
+
+    // Note: The constant name here is a bit misleading, as it actually covers all 64-bit processors
+    // and not just AMD.
+    // See also: http://msdn.microsoft.com/en-us/library/windows/desktop/ms724958(v=vs.85).aspx
+    return (sysInfo.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64);
+}
 
 // Extract the first thing that looks like (digit.digit+).
 // Note: this will break when java reports a version with major > 9.
@@ -79,7 +90,6 @@ static int checkPath(CPath *inOutPath) {
     inOutPath->addPath("java.exe");
 
     int result = 0;
-    PVOID oldWow64Value = disableWow64FsRedirection();
     if (inOutPath->fileExists()) {
         // Run java -version
         // Reject the version if it's not at least our current minimum.
@@ -88,7 +98,6 @@ static int checkPath(CPath *inOutPath) {
         }
     }
 
-    revertWow64FsRedirection(oldWow64Value);
     return result;
 }
 
@@ -305,44 +314,18 @@ static bool getMaxJavaInRegistry(const char *entry, REGSAM access, CPath *outJav
 }
 
 int findJavaInRegistry(CPath *outJavaPath) {
-    // We'll do the registry test 3 times: first using the default mode,
-    // then forcing the use of the 32-bit registry then forcing the use of
-    // 64-bit registry. On Windows 2k, the 2 latter will fail since the
-    // flags are not supported. On a 32-bit OS the 64-bit is obviously
-    // useless and the 2 first tests should be equivalent so we just
-    // need the first case.
-
     // Check the JRE first, then the JDK.
     int version = MIN_JAVA_VERSION - 1;
     bool result = false;
     result |= getMaxJavaInRegistry("Java Runtime Environment", 0, outJavaPath, &version);
     result |= getMaxJavaInRegistry("Java Development Kit",     0, outJavaPath, &version);
 
-    // Get the app sysinfo state (the one hidden by WOW64)
-    SYSTEM_INFO sysInfo;
-    GetSystemInfo(&sysInfo);
-    WORD programArch = sysInfo.wProcessorArchitecture;
-    // Check the real sysinfo state (not the one hidden by WOW64) for x86
-    GetNativeSystemInfo(&sysInfo);
-    WORD actualArch = sysInfo.wProcessorArchitecture;
-
-    // Only try to access the WOW64-32 redirected keys on a 64-bit system.
-    // There's no point in doing this on a 32-bit system.
-    if (actualArch == PROCESSOR_ARCHITECTURE_AMD64) {
-        if (programArch != PROCESSOR_ARCHITECTURE_INTEL) {
-            // If we did the 32-bit case earlier, don't do it twice.
-            result |= getMaxJavaInRegistry(
-                "Java Runtime Environment", KEY_WOW64_32KEY, outJavaPath, &version);
-            result |= getMaxJavaInRegistry(
-                "Java Development Kit",     KEY_WOW64_32KEY, outJavaPath, &version);
-
-        } else if (programArch != PROCESSOR_ARCHITECTURE_AMD64) {
-            // If we did the 64-bit case earlier, don't do it twice.
-            result |= getMaxJavaInRegistry(
-                "Java Runtime Environment", KEY_WOW64_64KEY, outJavaPath, &version);
-            result |= getMaxJavaInRegistry(
-                "Java Development Kit",     KEY_WOW64_64KEY, outJavaPath, &version);
-        }
+    // Even if we're 64-bit, try again but check the 32-bit registry, looking for 32-bit java.
+    if (isApplication64()) {
+        result |= getMaxJavaInRegistry(
+            "Java Runtime Environment", KEY_WOW64_32KEY, outJavaPath, &version);
+        result |= getMaxJavaInRegistry(
+            "Java Development Kit",     KEY_WOW64_32KEY, outJavaPath, &version);
     }
 
     return result ? version : 0;
@@ -350,12 +333,13 @@ int findJavaInRegistry(CPath *outJavaPath) {
 
 // --------------
 
-static bool checkProgramFiles(CPath *outJavaPath, int *inOutVersion) {
+static bool checkProgramFiles(CPath *outJavaPath, int *inOutVersion, bool force32bit) {
 
     char programFilesPath[MAX_PATH + 1];
+    int nFolder = force32bit ? CSIDL_PROGRAM_FILESX86 : CSIDL_PROGRAM_FILES;
     HRESULT result = SHGetFolderPathA(
         NULL,                       // hwndOwner
-        CSIDL_PROGRAM_FILES,        // nFolder
+        nFolder,
         NULL,                       // hToken
         SHGFP_TYPE_CURRENT,         // dwFlags
         programFilesPath);          // pszPath
@@ -364,7 +348,7 @@ static bool checkProgramFiles(CPath *outJavaPath, int *inOutVersion) {
     CPath path(programFilesPath);
     path.addPath("Java");
 
-    // Do we have a C:\\Program Files\\Java directory?
+    // Do we have a C:\Program Files\Java directory?
     if (!path.dirExists()) return false;
 
     CPath glob(path);
@@ -378,7 +362,7 @@ static bool checkProgramFiles(CPath *outJavaPath, int *inOutVersion) {
         if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
             CPath temp(path);
             temp.addPath(findData.cFileName);
-            // Check C:\\Program Files[x86]\\Java\\j*\\bin\\java.exe
+            // Check C:\Program Files\Java\j*\bin\java.exe
             int v = checkBinPath(&temp);
             if (v > *inOutVersion) {
                 found = true;
@@ -394,23 +378,15 @@ static bool checkProgramFiles(CPath *outJavaPath, int *inOutVersion) {
 
 int findJavaInProgramFiles(CPath *outJavaPath) {
 
-    // Check the C:\\Program Files (x86) directory
-    // With WOW64 fs redirection in place by default, we should get the x86
-    // version on a 64-bit OS since this app is a 32-bit itself.
+    // Check the C:\Program Files directory
     bool result = false;
     int version = MIN_JAVA_VERSION - 1;
-    result |= checkProgramFiles(outJavaPath, &version);
+    result |= checkProgramFiles(outJavaPath, &version, false);
 
-    // Check the real sysinfo state (not the one hidden by WOW64) for x86
-    SYSTEM_INFO sysInfo;
-    GetNativeSystemInfo(&sysInfo);
-
-    if (sysInfo.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64) {
-        // On a 64-bit OS, try again by disabling the fs redirection so
-        // that we can try the real C:\\Program Files directory.
-        PVOID oldWow64Value = disableWow64FsRedirection();
-        result |= checkProgramFiles(outJavaPath, &version);
-        revertWow64FsRedirection(oldWow64Value);
+    // Even if we're 64-bit, try again but check the C:\Program Files (x86) directory, looking for
+    // 32-bit java.
+    if (isApplication64()) {
+        result |= checkProgramFiles(outJavaPath, &version, true);
     }
 
     return result ? version : 0;
