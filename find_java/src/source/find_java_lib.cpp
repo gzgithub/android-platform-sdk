@@ -81,6 +81,21 @@ static bool extractJavaVersion(const char *start,
     return false;
 }
 
+// Check if the passed in path is a path to a JDK
+static bool isJdkPath(const CPath &path) {
+
+    // If the files "bin/java.exe" and "lib/tools.jar" exist, we're probably a JDK.
+    CPath pathBin(path);
+    pathBin.addPath("bin");
+    pathBin.addPath("java.exe");
+
+    CPath pathTools(path);
+    pathTools.addPath("lib");
+    pathTools.addPath("tools.jar");
+
+    return (pathBin.fileExists() && pathTools.fileExists());
+}
+
 // Check whether we can find $PATH/java.exe.
 // inOutPath should be the directory where we're looking at.
 // In output, it will be the java path we tested.
@@ -125,7 +140,7 @@ int checkJavaInPath(const CPath &path) {
 }
 
 // Search java.exe in the environment
-int findJavaInEnvPath(CPath *outJavaPath) {
+int findJavaInEnvPath(CPath *outJavaPath, bool isJdk) {
     SetLastError(0);
 
     int currVersion = 0;
@@ -133,17 +148,20 @@ int findJavaInEnvPath(CPath *outJavaPath) {
     const char* envPath = getenv("JAVA_HOME");
     if (envPath != NULL) {
         CPath p(envPath);
-        currVersion = checkBinPath(&p);
-        if (currVersion > 0) {
-            if (gIsDebug) {
-                fprintf(stderr, "Java %d found via JAVA_HOME: %s\n", currVersion, p.cstr());
+
+        if (!isJdk || isJdkPath(p)) {
+            currVersion = checkBinPath(&p);
+            if (currVersion > 0) {
+                if (gIsDebug) {
+                    fprintf(stderr, "Java %d found via JAVA_HOME: %s\n", currVersion, p.cstr());
+                }
+                *outJavaPath = p;
             }
-            *outJavaPath = p;
-        }
-        if (currVersion >= MIN_JAVA_VERSION) {
-            // As an optimization for runtime, if we find a suitable java
-            // version in JAVA_HOME we won't waste time looking at the PATH.
-            return currVersion;
+            if (currVersion >= MIN_JAVA_VERSION) {
+                // As an optimization for runtime, if we find a suitable java
+                // version in JAVA_HOME we won't waste time looking at the PATH.
+                return currVersion;
+            }
         }
     }
 
@@ -156,11 +174,17 @@ int findJavaInEnvPath(CPath *outJavaPath) {
     CArray<CString> *paths = CString(envPath).split(';');
     for(int i = 0; i < paths->size(); i++) {
         CPath p((*paths)[i].cstr());
+
+        if (isJdk && !isJdkPath(p)) {
+            continue;
+        }
+
         int v = checkPath(&p);
         if (v > currVersion) {
             if (gIsDebug) {
                 fprintf(stderr, "Java %d found via env PATH: %s\n", v, p.cstr());
             }
+
             currVersion = v;
             *outJavaPath = p;
         }
@@ -313,19 +337,18 @@ static bool getMaxJavaInRegistry(const char *entry, REGSAM access, CPath *outJav
     return false;
 }
 
-int findJavaInRegistry(CPath *outJavaPath) {
+int findJavaInRegistry(CPath *outJavaPath, bool isJdk) {
     // Check the JRE first, then the JDK.
     int version = MIN_JAVA_VERSION - 1;
     bool result = false;
-    result |= getMaxJavaInRegistry("Java Runtime Environment", 0, outJavaPath, &version);
-    result |= getMaxJavaInRegistry("Java Development Kit",     0, outJavaPath, &version);
+    result |= (!isJdk && getMaxJavaInRegistry("Java Runtime Environment", 0, outJavaPath, &version));
+    result |= getMaxJavaInRegistry("Java Development Kit", 0, outJavaPath, &version);
 
     // Even if we're 64-bit, try again but check the 32-bit registry, looking for 32-bit java.
     if (isApplication64()) {
-        result |= getMaxJavaInRegistry(
-            "Java Runtime Environment", KEY_WOW64_32KEY, outJavaPath, &version);
-        result |= getMaxJavaInRegistry(
-            "Java Development Kit",     KEY_WOW64_32KEY, outJavaPath, &version);
+        result |= (!isJdk &&
+            getMaxJavaInRegistry("Java Runtime Environment", KEY_WOW64_32KEY, outJavaPath, &version));
+        result |= getMaxJavaInRegistry("Java Development Kit", KEY_WOW64_32KEY, outJavaPath, &version);
     }
 
     return result ? version : 0;
@@ -333,7 +356,8 @@ int findJavaInRegistry(CPath *outJavaPath) {
 
 // --------------
 
-static bool checkProgramFiles(CPath *outJavaPath, int *inOutVersion, bool force32bit) {
+static bool checkProgramFiles(CPath *outJavaPath, int *inOutVersion, bool isJdk,
+    bool force32bit) {
 
     char programFilesPath[MAX_PATH + 1];
     int nFolder = force32bit ? CSIDL_PROGRAM_FILESX86 : CSIDL_PROGRAM_FILES;
@@ -363,11 +387,14 @@ static bool checkProgramFiles(CPath *outJavaPath, int *inOutVersion, bool force3
             CPath temp(path);
             temp.addPath(findData.cFileName);
             // Check C:\Program Files\Java\j*\bin\java.exe
-            int v = checkBinPath(&temp);
-            if (v > *inOutVersion) {
-                found = true;
-                *inOutVersion = v;
-                *outJavaPath = temp;
+
+            if (!isJdk || isJdkPath(temp)) {
+                int v = checkBinPath(&temp);
+                if (v > *inOutVersion) {
+                    found = true;
+                    *inOutVersion = v;
+                    *outJavaPath = temp;
+                }
             }
         }
     } while (!found && FindNextFileA(findH, &findData) != 0);
@@ -376,17 +403,17 @@ static bool checkProgramFiles(CPath *outJavaPath, int *inOutVersion, bool force3
     return found;
 }
 
-int findJavaInProgramFiles(CPath *outJavaPath) {
+int findJavaInProgramFiles(CPath *outJavaPath, bool isJdk) {
 
     // Check the C:\Program Files directory
     bool result = false;
     int version = MIN_JAVA_VERSION - 1;
-    result |= checkProgramFiles(outJavaPath, &version, false);
+    result |= checkProgramFiles(outJavaPath, &version, isJdk, false);
 
     // Even if we're 64-bit, try again but check the C:\Program Files (x86) directory, looking for
     // 32-bit java.
     if (isApplication64()) {
-        result |= checkProgramFiles(outJavaPath, &version, true);
+        result |= checkProgramFiles(outJavaPath, &version, isJdk, true);
     }
 
     return result ? version : 0;
