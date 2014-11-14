@@ -124,19 +124,28 @@ static int checkBinPath(CPath *inOutPath) {
 }
 
 // Test for the existence of java.exe in a custom path
-int checkJavaInPath(const CPath &path, int minVersion) {
+int findJavaInPath(const CPath &path, CPath *outJavaPath, bool isJdk, int minVersion) {
     SetLastError(0);
 
-    int currVersion = 0;
+    int version = 0;
     CPath temp(path);
-    currVersion = checkBinPath(&temp);
-    if (currVersion > minVersion) {
-        if (gIsDebug) {
-            fprintf(stderr, "Java %d found in path: %s\n", currVersion, temp.cstr());
+    if (!isJdk) {
+        version = checkPath(&temp);
+    }
+    else {
+        if (isJdkPath(temp)) {
+            version = checkBinPath(&temp);
         }
     }
 
-    return currVersion;
+    if (version >= minVersion) {
+        if (gIsDebug) {
+            fprintf(stderr, "Java %d found in path: %s\n", version, temp.cstr());
+        }
+        *outJavaPath = temp;
+        return version;
+    }
+    return 0;
 }
 
 // Search java.exe in the environment
