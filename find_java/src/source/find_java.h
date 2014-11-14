@@ -26,10 +26,11 @@
 #define MIN_JAVA_VERSION_MINOR 6
 #define MIN_JAVA_VERSION (MIN_JAVA_VERSION_MAJOR * 1000 + MIN_JAVA_VERSION_MINOR)
 
-int checkJavaInPath(const CPath &path);
-int findJavaInEnvPath(CPath *outJavaPath);
-int findJavaInRegistry(CPath *outJavaPath);
-int findJavaInProgramFiles(CPath *outJavaPath);
+int checkJavaInPath(const CPath &path, bool isJdk = false);
+int findJavaInEnvPath(CPath *outJavaPath, bool isJdk = false);
+int findJavaInRegistry(CPath *outJavaPath, bool isJdk = false);
+int findJavaInProgramFiles(CPath *outJavaPath, bool isJdk = false);
+
 bool getJavaVersion(CPath &javaPath, CString *outVersionStr, int *outVersionInt);
 
 #endif /* _WIN32 */
