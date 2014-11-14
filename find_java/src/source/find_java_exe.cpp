@@ -50,6 +50,7 @@ static int showHelpMessage() {
         "Options:\n"
         "-h / -help   : This help.\n"
         "-t / -test   : Internal test.\n"
+        "-e / -error  : Print an error message to the console if Java.exe isn't found.\n"
         "-j / -jdk    : Only returns java.exe found in a JDK.\n"
         "-s / -short  : Print path in short DOS form.\n"
         "-w / -javaw  : Search a matching javaw.exe; defaults to java.exe if not found.\n"
@@ -57,6 +58,13 @@ static int showHelpMessage() {
         "-v / -version: Only prints the Java version found.\n"
     );
     return 2;
+}
+
+static void printError(const char *message) {
+
+    CString error;
+    error.setLastWin32Error(message);
+    printf(error.cstr());
 }
 
 static void testFindJava(bool isJdk, int minVersion) {
@@ -108,6 +116,7 @@ int main(int argc, char* argv[]) {
     bool doVersion = false;
     bool doJavaW = false;
     bool isJdk = false;
+    bool shouldPrintError = false;
     int minVersion = MIN_JAVA_VERSION;
 
     for (int i = 1; i < argc; i++) {
@@ -117,6 +126,9 @@ int main(int argc, char* argv[]) {
 
         } else if (strncmp(argv[i], "-j", 2) == 0) {
             isJdk = true;
+
+        } else if (strncmp(argv[i], "-e", 2) == 0) {
+            shouldPrintError = true;
 
         } else if (strncmp(argv[i], "-d", 2) == 0) {
             gIsDebug = true;
@@ -153,19 +165,33 @@ int main(int argc, char* argv[]) {
         version = findJavaInProgramFiles(&javaPath, isJdk, minVersion);
     }
 
-    if (version == 0 || javaPath.isEmpty()) {
+    if (version == 0) {
+        CString s;
+        s.setf("Failed to find Java %d.%d (or newer) on your system. ", JAVA_MAJOR(minVersion),
+            JAVA_MINOR(minVersion));
+
         if (gIsDebug) {
-            fprintf(stderr, "Failed to find Java on your system.\n");
+            fprintf(stderr, s.cstr());
         }
+
+        if (shouldPrintError) {
+            printError(s.cstr());
+        }
+
         return 1;
     }
     _ASSERT(!javaPath.isEmpty());
 
     if (doShortPath) {
         if (!javaPath.toShortPath(&javaPath)) {
-            fprintf(stderr,
-                "Failed to convert path to a short DOS path: %s\n",
-                javaPath.cstr());
+            CString s;
+            s.setf("Failed to convert path (%s) to a short DOS path. ", javaPath.cstr());
+            fprintf(stderr, s.cstr());
+
+            if (shouldPrintError) {
+                printError(s.cstr());
+            }
+
             return 1;
         }
     }
@@ -188,7 +214,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Print java.exe path found
-    printf("%s", javaPath.cstr());
+    printf(javaPath.cstr());
     return 0;
 }
 
