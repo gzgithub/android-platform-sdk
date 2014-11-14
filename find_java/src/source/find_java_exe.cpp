@@ -43,28 +43,61 @@
 #include <io.h>
 #include <fcntl.h>
 
-static void testFindJava(bool isJdk) {
+static int showHelpMessage() {
+    printf(
+        "Outputs the path of the first Java.exe found on the local system.\n"
+        "Returns code 0 when found, 1 when not found.\n"
+        "Options:\n"
+        "-h / -help   : This help.\n"
+        "-t / -test   : Internal test.\n"
+        "-j / -jdk    : Only returns java.exe found in a JDK.\n"
+        "-s / -short  : Print path in short DOS form.\n"
+        "-w / -javaw  : Search a matching javaw.exe; defaults to java.exe if not found.\n"
+        "-m / -minv # : Pass in a minimum version to use (default: 1.6).\n"
+        "-v / -version: Only prints the Java version found.\n"
+    );
+    return 2;
+}
+
+static void testFindJava(bool isJdk, int minVersion) {
 
     CPath javaPath("<not found>");
-    int v = findJavaInEnvPath(&javaPath, isJdk);
+    int v = findJavaInEnvPath(&javaPath, isJdk, minVersion);
     printf("  findJavaInEnvPath: [%d] %s\n", v, javaPath.cstr());
 
     javaPath.set("<not found>");
-    v = findJavaInRegistry(&javaPath, isJdk);
+    v = findJavaInRegistry(&javaPath, isJdk, minVersion);
     printf("  findJavaInRegistry [%d] %s\n", v, javaPath.cstr());
 
     javaPath.set("<not found>");
-    v = findJavaInProgramFiles(&javaPath, isJdk);
+    v = findJavaInProgramFiles(&javaPath, isJdk, minVersion);
     printf("  findJavaInProgramFiles [%d] %s\n", v, javaPath.cstr());
 }
 
-static void testFindJava() {
+static void testFindJava(int minVersion) {
+
+    printf("Searching for version %d.%d or newer...\n", JAVA_MAJOR(minVersion),
+        JAVA_MINOR(minVersion));
+
+    printf("\n");
     printf("Searching for any java.exe:\n");
-    testFindJava(false);
+    testFindJava(false, minVersion);
 
     printf("\n");
     printf("Searching for java.exe within a JDK:\n");
-    testFindJava(true);
+    testFindJava(true, minVersion);
+}
+
+// Returns 0 on failure or a java version on success.
+int parseMinVersionArg(char* arg) {
+
+    int versionMajor = -1;
+    int versionMinor = -1;
+    if (sscanf(arg, "%d.%d", &versionMajor, &versionMinor) != 2) {
+        // -m arg is malformatted
+        return 0;
+    }
+    return TO_JAVA_VERSION(versionMajor, versionMinor);
 }
 
 int main(int argc, char* argv[]) {
@@ -75,10 +108,11 @@ int main(int argc, char* argv[]) {
     bool doVersion = false;
     bool doJavaW = false;
     bool isJdk = false;
+    int minVersion = MIN_JAVA_VERSION;
 
     for (int i = 1; i < argc; i++) {
         if (strncmp(argv[i], "-t", 2) == 0) {
-            testFindJava();
+            testFindJava(minVersion);
             return 0;
 
         } else if (strncmp(argv[i], "-j", 2) == 0) {
@@ -93,36 +127,33 @@ int main(int argc, char* argv[]) {
         } else if (strncmp(argv[i], "-v", 2) == 0) {
             doVersion = true;
 
-        } else if (strcmp(argv[i], "-w") == 0 || strcmp(argv[i], "-javaw") == 0) {
+        } else if (strncmp(argv[i], "-m", 2) == 0) {
+            i++;
+            if (i == argc ||
+                ((minVersion = parseMinVersionArg(argv[i])) == 0)) {
+                return showHelpMessage();
+            }
+        }
+        else if (strcmp(argv[i], "-w") == 0 || strcmp(argv[i], "-javaw") == 0) {
             doJavaW = true;
 
         }
         else {
-            printf(
-                "Outputs the path of the first Java.exe found on the local system.\n"
-                "Returns code 0 when found, 1 when not found.\n"
-                "Options:\n"
-                "-h / -help   : This help.\n"
-                "-t / -test   : Internal test.\n"
-                "-j / -jdk    : Only returns java.exe found in a JDK.\n"
-                "-s / -short  : Print path in short DOS form.\n"
-                "-w / -javaw  : Search a matching javaw.exe; defaults to java.exe if not found.\n"
-                "-v / -version: Only prints the Java version found.\n"
-                );
-            return 2;
+            return showHelpMessage();
         }
     }
 
     // Find the first suitable version of Java we can use.
     CPath javaPath;
-    int version = findJavaInEnvPath(&javaPath, isJdk);
-    if (version < MIN_JAVA_VERSION) {
-        version = findJavaInRegistry(&javaPath, isJdk);
+    int version = findJavaInEnvPath(&javaPath, isJdk, minVersion);
+    if (version == 0) {
+        version = findJavaInRegistry(&javaPath, isJdk, minVersion);
     }
-    if (version < MIN_JAVA_VERSION) {
-        version = findJavaInProgramFiles(&javaPath, isJdk);
+    if (version == 0) {
+        version = findJavaInProgramFiles(&javaPath, isJdk, minVersion);
     }
-    if (version < MIN_JAVA_VERSION || javaPath.isEmpty()) {
+
+    if (version == 0 || javaPath.isEmpty()) {
         if (gIsDebug) {
             fprintf(stderr, "Failed to find Java on your system.\n");
         }
@@ -142,7 +173,7 @@ int main(int argc, char* argv[]) {
     if (doVersion) {
         // Print version found. We already have the version as an integer
         // so we don't need to run java -version a second time.
-        printf("%d.%d", version / 1000, version % 1000);
+        printf("%d.%d", JAVA_MAJOR(version), JAVA_MINOR(version));
         return 0;
     }
 
