@@ -117,15 +117,12 @@ int main(int argc, char* argv[]) {
     _ASSERT(!javaPath.isEmpty());
 
     if (doShortPath) {
-        PVOID oldWow64Value = disableWow64FsRedirection();
         if (!javaPath.toShortPath(&javaPath)) {
-            revertWow64FsRedirection(&oldWow64Value);
             fprintf(stderr,
                 "Failed to convert path to a short DOS path: %s\n",
                 javaPath.cstr());
             return 1;
         }
-        revertWow64FsRedirection(&oldWow64Value);
     }
 
     if (doVersion) {
@@ -140,11 +137,9 @@ int main(int argc, char* argv[]) {
         CPath javawPath(javaPath);
         javawPath.replaceName("java.exe", "javaw.exe");
         // Only accept it if we can actually find the exec
-        PVOID oldWow64Value = disableWow64FsRedirection();
         if (javawPath.fileExists()) {
             javaPath.set(javawPath.cstr());
         }
-        revertWow64FsRedirection(&oldWow64Value);
     }
 
     // Print java.exe path found
