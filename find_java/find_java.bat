@@ -21,15 +21,20 @@ rem Useful links:
 rem Command-line reference:
 rem   http://technet.microsoft.com/en-us/library/bb490890.aspx
 
+rem Query whether this system is 32-bit or 64-bit
+rem See also: http://stackoverflow.com/a/24590583/1299302
+reg Query "HKLM\Hardware\Description\System\CentralProcessor\0" |^
+find /i "x86" > NUL && set arch_ext=32 || set arch_ext=64
+
 rem Check we have a valid Java.exe in the path. The return code will
 rem be 0 if the command worked or 1 if the exec failed (program not found).
-for /f "delims=" %%a in ('"%~dps0\find_java.exe" -s') do set java_exe=%%a
+for /f "delims=" %%a in ('"%~dps0\find_java%arch_ext%.exe" -s') do set java_exe=%%a
 if not defined java_exe goto :CheckFailed
 
 :SearchJavaW
 rem Check if we can find a javaw.exe at the same location than java.exe.
 rem If that doesn't work, just fall back on the java.exe we just found.
-for /f "delims=" %%a in ('"%~dps0\find_java.exe" -s -w') do set javaw_exe=%%a
+for /f "delims=" %%a in ('"%~dps0\find_java%arch_ext%.exe" -s -w') do set javaw_exe=%%a
 if not exist "%javaw_exe%" set javaw_exe=%java_exe%
 goto :EOF
 
