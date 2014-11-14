@@ -124,13 +124,13 @@ static int checkBinPath(CPath *inOutPath) {
 }
 
 // Test for the existence of java.exe in a custom path
-int checkJavaInPath(const CPath &path) {
+int checkJavaInPath(const CPath &path, int minVersion) {
     SetLastError(0);
 
     int currVersion = 0;
     CPath temp(path);
     currVersion = checkBinPath(&temp);
-    if (currVersion > 0) {
+    if (currVersion > minVersion) {
         if (gIsDebug) {
             fprintf(stderr, "Java %d found in path: %s\n", currVersion, temp.cstr());
         }
@@ -140,7 +140,7 @@ int checkJavaInPath(const CPath &path) {
 }
 
 // Search java.exe in the environment
-int findJavaInEnvPath(CPath *outJavaPath, bool isJdk) {
+int findJavaInEnvPath(CPath *outJavaPath, bool isJdk, int minVersion) {
     SetLastError(0);
 
     int currVersion = 0;
@@ -157,7 +157,7 @@ int findJavaInEnvPath(CPath *outJavaPath, bool isJdk) {
                 }
                 *outJavaPath = p;
             }
-            if (currVersion >= MIN_JAVA_VERSION) {
+            if (currVersion >= minVersion) {
                 // As an optimization for runtime, if we find a suitable java
                 // version in JAVA_HOME we won't waste time looking at the PATH.
                 return currVersion;
@@ -180,7 +180,7 @@ int findJavaInEnvPath(CPath *outJavaPath, bool isJdk) {
         }
 
         int v = checkPath(&p);
-        if (v > currVersion) {
+        if (v >= minVersion && v > currVersion) {
             if (gIsDebug) {
                 fprintf(stderr, "Java %d found via env PATH: %s\n", v, p.cstr());
             }
@@ -245,7 +245,8 @@ static bool getRegValue(const char *keyPath,
 // Returns an int which is the version of Java found (e.g. 1006 for 1.6) and the
 // matching path in outJavaPath.
 // Returns 0 if nothing suitable was found.
-static int exploreJavaRegistry(const char *entry, REGSAM access, CPath *outJavaPath) {
+static int exploreJavaRegistry(const char *entry, REGSAM access, int minVersion,
+    CPath *outJavaPath) {
 
     // Let's visit HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Runtime Environment [CurrentVersion]
     CPath rootKey("SOFTWARE\\JavaSoft\\");
@@ -269,7 +270,7 @@ static int exploreJavaRegistry(const char *entry, REGSAM access, CPath *outJavaP
                 }
                 *outJavaPath = javaHome;
             }
-            if (versionInt >= MIN_JAVA_VERSION) {
+            if (versionInt >= minVersion) {
                 // Heuristic: if the current version is good enough, stop here
                 return versionInt;
             }
@@ -328,7 +329,7 @@ static int exploreJavaRegistry(const char *entry, REGSAM access, CPath *outJavaP
 
 static bool getMaxJavaInRegistry(const char *entry, REGSAM access, CPath *outJavaPath, int *inOutVersion) {
     CPath path;
-    int version = exploreJavaRegistry(entry, access, &path);
+    int version = exploreJavaRegistry(entry, access, *inOutVersion, &path);
     if (version > *inOutVersion) {
         *outJavaPath  = path;
         *inOutVersion = version;
@@ -337,9 +338,9 @@ static bool getMaxJavaInRegistry(const char *entry, REGSAM access, CPath *outJav
     return false;
 }
 
-int findJavaInRegistry(CPath *outJavaPath, bool isJdk) {
+int findJavaInRegistry(CPath *outJavaPath, bool isJdk, int minVersion) {
     // Check the JRE first, then the JDK.
-    int version = MIN_JAVA_VERSION - 1;
+    int version = minVersion - 1; // Inner methods check if they're greater than this version.
     bool result = false;
     result |= (!isJdk && getMaxJavaInRegistry("Java Runtime Environment", 0, outJavaPath, &version));
     result |= getMaxJavaInRegistry("Java Development Kit", 0, outJavaPath, &version);
@@ -403,11 +404,11 @@ static bool checkProgramFiles(CPath *outJavaPath, int *inOutVersion, bool isJdk,
     return found;
 }
 
-int findJavaInProgramFiles(CPath *outJavaPath, bool isJdk) {
+int findJavaInProgramFiles(CPath *outJavaPath, bool isJdk, int minVersion) {
 
     // Check the C:\Program Files directory
     bool result = false;
-    int version = MIN_JAVA_VERSION - 1;
+    int version = minVersion - 1; // Inner methods check if they're greater than this version.
     result |= checkProgramFiles(outJavaPath, &version, isJdk, false);
 
     // Even if we're 64-bit, try again but check the C:\Program Files (x86) directory, looking for
@@ -420,7 +421,6 @@ int findJavaInProgramFiles(CPath *outJavaPath, bool isJdk) {
 }
 
 // --------------
-
 
 // Tries to invoke the java.exe at the given path and extract it's
 // version number.
