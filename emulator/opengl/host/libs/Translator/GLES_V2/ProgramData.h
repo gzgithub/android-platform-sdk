@@ -35,10 +35,17 @@ public:
     void setInfoLog(GLchar *log);
     GLchar* getInfoLog();
 
+    bool isInUse() const { return IsInUse; }
+    void setInUse(bool inUse) { IsInUse = inUse; }
+
+    bool getDeleteStatus() const { return DeleteStatus; }
+    void setDeleteStatus(bool status) { DeleteStatus = status; }
 private:
     GLuint AttachedVertexShader;
     GLuint AttachedFragmentShader;
     GLint  LinkStatus;
     GLchar* infoLog;
+    bool    IsInUse;
+    bool    DeleteStatus;
 };
 #endif
