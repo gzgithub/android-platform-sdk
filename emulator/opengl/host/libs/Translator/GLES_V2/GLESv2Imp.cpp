@@ -934,6 +934,20 @@ GL_APICALL void  GL_APIENTRY glGetFloatv(GLenum pname, GLfloat* params){
         }
         break;
 
+    case GL_STENCIL_BACK_VALUE_MASK:
+    case GL_STENCIL_BACK_WRITEMASK:
+    case GL_STENCIL_VALUE_MASK:
+    case GL_STENCIL_WRITEMASK:
+        {
+            GLint myint = 0;
+            glGetIntegerv(pname, &myint);
+            // Two casts are used: since mask is unsigned integer,
+            // the first cast converts to unsigned integer;
+            // the second cast converts to float.
+            *params = (GLfloat)((GLuint)(myint));
+        }
+        break;
+
     default:
         ctx->dispatcher().glGetFloatv(pname,params);
     }
