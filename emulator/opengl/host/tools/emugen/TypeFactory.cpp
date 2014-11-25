@@ -103,23 +103,30 @@ int TypeFactory::initFromFile(const std::string &filename)
             return -2;
         }
 
+        // The ispointer definition is optional since we can just
+        // look at the type name, and determine it is a pointer if
+        // it ends with '*'.
+        bool isPointer = (name[name.size() - 1U] == '*');
+
         pos = last + 1;
         std::string pointerDef;
         pointerDef = getNextToken(str, pos, &last, WHITESPACE);
-        if (pointerDef.size() == 0) {
-            fprintf(stderr, "Error: %d : missing ispointer definition\n", lc);
-            return -2;
-        }
-
-        bool isPointer=false;
-        if (std::string("true")==pointerDef)
-          isPointer = true;
-        else if (std::string("false")==pointerDef)
-          isPointer = false;
-        else
-        {
-          fprintf(stderr, "Error: %d : invalid isPointer definition, must be either \"true\" or \"false\"\n", lc);
-          return -2;
+        if (pointerDef.size() != 0) {
+            // Just a little sanity check.
+            if (std::string("true")==pointerDef) {
+                if (!isPointer) {
+                    fprintf(stderr, "Error: %d: invalid isPointer definition: 'true' but name does not end with '*'!\n", lc);
+                    return -2;
+                }
+            } else if (std::string("false")==pointerDef) {
+                if (isPointer) {
+                    fprintf(stderr, "Error: %d: invalid isPointer definition: 'false' but name does end with '*'!\n", lc);
+                    return -2;
+                }
+            } else {
+                fprintf(stderr, "Error: %d : invalid isPointer definition, must be either \"true\" or \"false\"\n", lc);
+                return -2;
+            }
         }
 
         VarConverter *v = getVarConverter(atoi(size.c_str()));
