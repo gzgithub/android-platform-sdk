@@ -761,8 +761,12 @@ int ApiGen::genDecoderImpl(const std::string &filename)
     fprintf(fp, "\n\n#include <string.h>\n");
     fprintf(fp, "#include \"%s_opcodes.h\"\n\n", m_basename.c_str());
     fprintf(fp, "#include \"%s_dec.h\"\n\n\n", m_basename.c_str());
+    fprintf(fp, "#include \"ProtocolUtils.h\"\n\n");
     fprintf(fp, "#include <stdio.h>\n\n");
     fprintf(fp, "typedef unsigned int tsize_t; // Target \"size_t\", which is 32-bit for now. It may or may not be the same as host's size_t when emugen is compiled.\n\n");
+
+    // helper templates
+    fprintf(fp, "using namespace emugl;\n\n");
 
     // decoder switch;
     fprintf(fp, "size_t %s::decode(void *buf, size_t len, IOStream *stream)\n{\n", classname.c_str());
@@ -808,7 +812,9 @@ int ApiGen::genDecoderImpl(const std::string &filename)
         }
 
         for (int pass = PASS_TmpBuffAlloc; pass < PASS_LAST; pass++) {
-            if (pass == PASS_FunctionCall && !e->retval().isVoid() && !e->retval().isPointer()) {
+            if (pass == PASS_FunctionCall &&
+                !e->retval().isVoid() &&
+                !e->retval().isPointer()) {
                 fprintf(fp, "\t\t\t*(%s *)(&tmpBuf[%s]) = ", retvalType.c_str(),
                         totalTmpBuffOffset.c_str());
             }
@@ -821,9 +827,14 @@ int ApiGen::genDecoderImpl(const std::string &filename)
                 }
             } else if (pass == PASS_DebugPrint) {
                 fprintf(fp, "#ifdef DEBUG_PRINTOUT\n");
-                fprintf(fp, "\t\t\tfprintf(stderr,\"%s(%%p): %s(%s)\\n\", stream",
-                        m_basename.c_str(), e->name().c_str(), printString.c_str());
-                if (e->vars().size() > 0 && !e->vars()[0].isVoid()) fprintf(fp, ",");
+                fprintf(fp,
+                        "\t\t\tfprintf(stderr,\"%s(%%p): %s(%s)\\n\", stream",
+                        m_basename.c_str(),
+                        e->name().c_str(),
+                        printString.c_str());
+                if (e->vars().size() > 0 && !e->vars()[0].isVoid()) {
+                    fprintf(fp, ",");
+                }
             }
 
             std::string varoffset = "8"; // skip the header
@@ -831,89 +842,147 @@ int ApiGen::genDecoderImpl(const std::string &filename)
             // allocate memory for out pointers;
             for (size_t j = 0; j < evars.size(); j++) {
                 Var *v = & evars[j];
-                if (!v->isVoid()) {
-                    if ((pass == PASS_FunctionCall) && (j != 0 || e->customDecoder())) fprintf(fp, ", ");
-                    if (pass == PASS_DebugPrint && j != 0) fprintf(fp, ", ");
+                if (v->isVoid()) {
+                    continue;
+                }
+                if ((pass == PASS_FunctionCall) &&
+                    (j != 0 || e->customDecoder())) {
+                    fprintf(fp, ", ");
+                }
+                if (pass == PASS_DebugPrint && j != 0) {
+                    fprintf(fp, ", ");
+                }
 
-                    if (!v->isPointer()) {
-                        if (pass == PASS_FunctionCall || pass == PASS_DebugPrint) {
-                            fprintf(fp, "*(%s *)(ptr + %s)", v->type()->name().c_str(), varoffset.c_str());
-                        }
-                        varoffset += " + " + toString(v->type()->bytes());
-                    } else {
-                        if (v->pointerDir() == Var::POINTER_IN || v->pointerDir() == Var::POINTER_INOUT) {
-                            if (pass == PASS_MemAlloc && v->pointerDir() == Var::POINTER_INOUT) {
-                                fprintf(fp, "\t\t\tsize_t tmpPtr%uSize = (size_t)*(unsigned int *)(ptr + %s);\n",
-                                        (unsigned) j, varoffset.c_str());
-                                fprintf(fp, "unsigned char *tmpPtr%u = (ptr + %s + 4);\n",
-                                        (unsigned) j, varoffset.c_str());
-                            }
-                            if (pass == PASS_FunctionCall) {
-                                if (v->nullAllowed()) {
-                                    fprintf(fp, "*((unsigned int *)(ptr + %s)) == 0 ? NULL : (%s)(ptr + %s + 4)",
-                                            varoffset.c_str(), v->type()->name().c_str(), varoffset.c_str());
-                                } else {
-                                    fprintf(fp, "(%s)(ptr + %s + 4)",
-                                            v->type()->name().c_str(), varoffset.c_str());
-                                }
-                            } else if (pass == PASS_DebugPrint) {
-                                fprintf(fp, "(%s)(ptr + %s + 4), *(unsigned int *)(ptr + %s)",
-                                        v->type()->name().c_str(), varoffset.c_str(),
-                                        varoffset.c_str());
-                            }
-                            varoffset += " + 4 + *(tsize_t *)(ptr +" + varoffset + ")";
-                        } else { // out pointer;
-                            if (pass == PASS_TmpBuffAlloc) {
-                                fprintf(fp, "\t\t\tsize_t tmpPtr%uSize = (size_t)*(unsigned int *)(ptr + %s);\n",
-                                        (unsigned) j, varoffset.c_str());
-                                if (!totalTmpBuffExist) {
-                                    fprintf(fp, "\t\t\tsize_t totalTmpSize = tmpPtr%uSize;\n", (unsigned)j);
-                                } else {
-                                    fprintf(fp, "\t\t\ttotalTmpSize += tmpPtr%uSize;\n", (unsigned)j);
-                                }
-                                tmpBufOffset[j] = totalTmpBuffOffset;
-                                char tmpPtrName[16];
-                                sprintf(tmpPtrName," + tmpPtr%uSize", (unsigned)j);
-                                totalTmpBuffOffset += std::string(tmpPtrName);
-                                totalTmpBuffExist = true;
-                            } else if (pass == PASS_MemAlloc) {
-                                fprintf(fp, "\t\t\tunsigned char *tmpPtr%u = &tmpBuf[%s];\n",
-                                        (unsigned)j, tmpBufOffset[j].c_str());
-                                fprintf(fp, "\t\t\tmemset(tmpPtr%u, 0, %s);\n",
-                                        (unsigned)j,
-                                        toString(v->type()->bytes()).c_str());
-                            } else if (pass == PASS_FunctionCall) {
-                                if (v->nullAllowed()) {
-                                    fprintf(fp, "tmpPtr%uSize == 0 ? NULL : (%s)(tmpPtr%u)",
-                                            (unsigned) j, v->type()->name().c_str(), (unsigned) j);
-                                } else {
-                                    fprintf(fp, "(%s)(tmpPtr%u)", v->type()->name().c_str(), (unsigned) j);
-                                }
-                            } else if (pass == PASS_DebugPrint) {
-                                fprintf(fp, "(%s)(tmpPtr%u), *(unsigned int *)(ptr + %s)",
-                                        v->type()->name().c_str(), (unsigned) j,
-                                        varoffset.c_str());
-                            }
-                            varoffset += " + 4";
-                        }
+                if (!v->isPointer()) {
+                    if (pass == PASS_FunctionCall) {
+                        fprintf(fp,
+                                "Unpack<%s,uint%d_t>(ptr + %s)",
+                                v->type()->name().c_str(),
+                                v->type()->bytes() * 8,
+                                varoffset.c_str());
                     }
+                    if (pass == PASS_DebugPrint) {
+                        fprintf(fp,
+                                "*(uint%d_t *)(ptr + %s)",
+                                v->type()->bytes() * 8,
+                                varoffset.c_str());
+                    }
+                    varoffset += " + " + toString(v->type()->bytes());
+                    continue;
+                }
+
+                if (v->pointerDir() == Var::POINTER_IN ||
+                    v->pointerDir() == Var::POINTER_INOUT) {
+                    if (pass == PASS_MemAlloc &&
+                        v->pointerDir() == Var::POINTER_INOUT) {
+                        fprintf(fp,
+                                "\t\t\tsize_t tmpPtr%uSize = (size_t)*(uint32_t *)(ptr + %s);\n",
+                                (unsigned) j,
+                                varoffset.c_str());
+                        fprintf(fp,
+                                "unsigned char *tmpPtr%u = (ptr + %s + 4);\n",
+                                (unsigned) j,
+                                varoffset.c_str());
+                    }
+                    if (pass == PASS_FunctionCall) {
+                        if (v->nullAllowed()) {
+                            fprintf(fp,
+                                    "*((uint32_t *)(ptr + %s)) == 0 ? NULL : (%s)(ptr + %s + 4)",
+                                    varoffset.c_str(),
+                                    v->type()->name().c_str(),
+                                    varoffset.c_str());
+                        } else {
+                            fprintf(fp,
+                                    "(%s)(ptr + %s + 4)",
+                                    v->type()->name().c_str(),
+                                    varoffset.c_str());
+                        }
+                    } else if (pass == PASS_DebugPrint) {
+                        fprintf(fp,
+                                "(%s)(ptr + %s + 4), *(uint32_t *)(ptr + %s)",
+                                v->type()->name().c_str(),
+                                varoffset.c_str(),
+                                varoffset.c_str());
+                    }
+                    varoffset +=
+                            " + 4 + *(tsize_t *)(ptr +" + varoffset + ")";
+                } else { // out pointer;
+                    if (pass == PASS_TmpBuffAlloc) {
+                        fprintf(fp,
+                                "\t\t\tsize_t tmpPtr%uSize = (size_t)*(uint32_t *)(ptr + %s);\n",
+                                (unsigned) j,
+                                varoffset.c_str());
+                        if (!totalTmpBuffExist) {
+                            fprintf(fp,
+                                    "\t\t\tsize_t totalTmpSize = tmpPtr%uSize;\n",
+                                    (unsigned)j);
+                        } else {
+                            fprintf(fp,
+                                    "\t\t\ttotalTmpSize += tmpPtr%uSize;\n",
+                                    (unsigned)j);
+                        }
+                        tmpBufOffset[j] = totalTmpBuffOffset;
+                        char tmpPtrName[16];
+                        sprintf(tmpPtrName," + tmpPtr%uSize", (unsigned)j);
+                        totalTmpBuffOffset += std::string(tmpPtrName);
+                        totalTmpBuffExist = true;
+                    } else if (pass == PASS_MemAlloc) {
+                        fprintf(fp,
+                                "\t\t\tunsigned char *tmpPtr%u = &tmpBuf[%s];\n",
+                                (unsigned)j,
+                                tmpBufOffset[j].c_str());
+                        fprintf(fp,
+                                "\t\t\tmemset(tmpPtr%u, 0, %s);\n",
+                                (unsigned)j,
+                                toString(v->type()->bytes()).c_str());
+                    } else if (pass == PASS_FunctionCall) {
+                        if (v->nullAllowed()) {
+                            fprintf(fp,
+                                    "tmpPtr%uSize == 0 ? NULL : (%s)(tmpPtr%u)",
+                                    (unsigned) j,
+                                    v->type()->name().c_str(),
+                                    (unsigned) j);
+                        } else {
+                            fprintf(fp,
+                                    "(%s)(tmpPtr%u)",
+                                    v->type()->name().c_str(),
+                                    (unsigned) j);
+                        }
+                    } else if (pass == PASS_DebugPrint) {
+                        fprintf(fp,
+                                "(%s)(tmpPtr%u), *(uint32_t *)(ptr + %s)",
+                                v->type()->name().c_str(),
+                                (unsigned) j,
+                                varoffset.c_str());
+                    }
+                    varoffset += " + 4";
                 }
             }
 
-            if (pass == PASS_FunctionCall || pass == PASS_DebugPrint) fprintf(fp, ");\n");
-            if (pass == PASS_DebugPrint) fprintf(fp, "#endif\n");
+            if (pass == PASS_FunctionCall ||
+                pass == PASS_DebugPrint) {
+                fprintf(fp, ");\n");
+            }
+            if (pass == PASS_DebugPrint) {
+                fprintf(fp, "#endif\n");
+            }
 
             if (pass == PASS_TmpBuffAlloc) {
                 if (!e->retval().isVoid() && !e->retval().isPointer()) {
                     if (!totalTmpBuffExist)
-                        fprintf(fp, "\t\t\tsize_t totalTmpSize = sizeof(%s);\n", retvalType.c_str());
+                        fprintf(fp,
+                                "\t\t\tsize_t totalTmpSize = sizeof(%s);\n",
+                                retvalType.c_str());
                     else
-                        fprintf(fp, "\t\t\ttotalTmpSize += sizeof(%s);\n", retvalType.c_str());
+                        fprintf(fp,
+                                "\t\t\ttotalTmpSize += sizeof(%s);\n",
+                                retvalType.c_str());
 
                     totalTmpBuffExist = true;
                 }
                 if (totalTmpBuffExist) {
-                    fprintf(fp, "\t\t\tunsigned char *tmpBuf = stream->alloc(totalTmpSize);\n");
+                    fprintf(fp,
+                            "\t\t\tunsigned char *tmpBuf = stream->alloc(totalTmpSize);\n");
                 }
             }
 
@@ -923,8 +992,8 @@ int ApiGen::genDecoderImpl(const std::string &filename)
                     fprintf(fp, "\t\t\tstream->flush();\n");
                 }
 
-                fprintf(fp, "\t\t\tpos += *(int *)(ptr + 4);\n");
-                fprintf(fp, "\t\t\tptr += *(int *)(ptr + 4);\n");
+                fprintf(fp, "\t\t\tpos += *(uint32_t *)(ptr + 4);\n");
+                fprintf(fp, "\t\t\tptr += *(uint32_t *)(ptr + 4);\n");
             }
 
         } // pass;
