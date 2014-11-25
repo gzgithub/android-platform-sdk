@@ -78,6 +78,16 @@ bool GLESvalidate::bufferTarget(GLenum target) {
     return target == GL_ARRAY_BUFFER || target == GL_ELEMENT_ARRAY_BUFFER;
 }
 
+bool GLESvalidate::bufferUsage(GLenum usage) {
+    switch(usage) {
+        case GL_STREAM_DRAW:
+        case GL_STATIC_DRAW:
+        case GL_DYNAMIC_DRAW:
+            return true;
+    }
+    return false;
+}
+
 bool GLESvalidate::bufferParam(GLenum param) {
  return  (param == GL_BUFFER_SIZE) || (param == GL_BUFFER_USAGE);
 }
