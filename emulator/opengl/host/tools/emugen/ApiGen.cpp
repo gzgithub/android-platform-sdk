@@ -630,15 +630,21 @@ int ApiGen::genEncoderImpl(const std::string &filename)
             }
         }
 //XXX       fprintf(fp, "\n\tDBG(\"<<<< %s\\n\");\n", e->name().c_str());
+
         // todo - return value for pointers
         if (e->retval().isPointer()) {
             fprintf(stderr, "WARNING: %s : return value of pointer is unsupported\n",
                     e->name().c_str());
+            if (e->flushOnEncode()) {
+                fprintf(fp, "\tstream->flush();\n");
+            }
             fprintf(fp, "\t return NULL;\n");
         } else if (e->retval().type()->name() != "void") {
             fprintf(fp, "\n\t%s retval;\n", e->retval().type()->name().c_str());
             fprintf(fp, "\tstream->readback(&retval, %u);\n",(unsigned) e->retval().type()->bytes());
             fprintf(fp, "\treturn retval;\n");
+        } else if (e->flushOnEncode()) {
+            fprintf(fp, "\tstream->flush();\n");
         }
         fprintf(fp, "}\n\n");
     }

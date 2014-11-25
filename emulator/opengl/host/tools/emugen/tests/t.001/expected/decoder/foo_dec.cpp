@@ -70,6 +70,13 @@ size_t foo_decoder_context_t::decode(void *buf, size_t len, IOStream *stream)
 			SET_LASTCALL("fooUnsupported");
 			break;
 		}
+		case OP_fooDoEncoderFlush: {
+			FooInt var_param = Unpack<FooInt,uint32_t>(ptr + 8);
+			DEBUG("foo(%p): fooDoEncoderFlush(%d )\n", stream,var_param);
+			this->fooDoEncoderFlush(var_param);
+			SET_LASTCALL("fooDoEncoderFlush");
+			break;
+		}
 			default:
 				unknownOpcode = true;
 		} //switch

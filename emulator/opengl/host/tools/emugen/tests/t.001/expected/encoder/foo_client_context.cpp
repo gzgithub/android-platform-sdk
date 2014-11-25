@@ -13,6 +13,7 @@ int foo_client_context_t::initDispatchByName(void *(*getProc)(const char *, void
 	fooAlphaFunc = (fooAlphaFunc_client_proc_t) getProc("fooAlphaFunc", userData);
 	fooIsBuffer = (fooIsBuffer_client_proc_t) getProc("fooIsBuffer", userData);
 	fooUnsupported = (fooUnsupported_client_proc_t) getProc("fooUnsupported", userData);
+	fooDoEncoderFlush = (fooDoEncoderFlush_client_proc_t) getProc("fooDoEncoderFlush", userData);
 	return 0;
 }
 
