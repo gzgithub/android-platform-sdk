@@ -152,28 +152,25 @@ int findJavaInPath(const CPath &path, CPath *outJavaPath, bool isJdk, int minVer
 int findJavaInEnvPath(CPath *outJavaPath, bool isJdk, int minVersion) {
     SetLastError(0);
 
-    int currVersion = 0;
-
     const char* envPath = getenv("JAVA_HOME");
     if (envPath != NULL) {
         CPath p(envPath);
 
         if (!isJdk || isJdkPath(p)) {
-            currVersion = checkBinPath(&p);
-            if (currVersion > 0) {
+            int v = checkBinPath(&p);
+            if (v >= minVersion) {
                 if (gIsDebug) {
-                    fprintf(stderr, "Java %d found via JAVA_HOME: %s\n", currVersion, p.cstr());
+                    fprintf(stderr, "Java %d found via JAVA_HOME: %s\n", v, p.cstr());
                 }
                 *outJavaPath = p;
-            }
-            if (currVersion >= minVersion) {
                 // As an optimization for runtime, if we find a suitable java
                 // version in JAVA_HOME we won't waste time looking at the PATH.
-                return currVersion;
+                return v;
             }
         }
     }
 
+    int currVersion = 0;
     envPath = getenv("PATH");
     if (!envPath) return currVersion;
 
