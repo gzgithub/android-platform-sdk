@@ -341,30 +341,30 @@ static int rcUpdateColorBuffer(uint32_t colorBuffer,
 
 void initRenderControlContext(renderControl_decoder_context_t *dec)
 {
-    dec->set_rcGetRendererVersion(rcGetRendererVersion);
-    dec->set_rcGetEGLVersion(rcGetEGLVersion);
-    dec->set_rcQueryEGLString(rcQueryEGLString);
-    dec->set_rcGetGLString(rcGetGLString);
-    dec->set_rcGetNumConfigs(rcGetNumConfigs);
-    dec->set_rcGetConfigs(rcGetConfigs);
-    dec->set_rcChooseConfig(rcChooseConfig);
-    dec->set_rcGetFBParam(rcGetFBParam);
-    dec->set_rcCreateContext(rcCreateContext);
-    dec->set_rcDestroyContext(rcDestroyContext);
-    dec->set_rcCreateWindowSurface(rcCreateWindowSurface);
-    dec->set_rcDestroyWindowSurface(rcDestroyWindowSurface);
-    dec->set_rcCreateColorBuffer(rcCreateColorBuffer);
-    dec->set_rcOpenColorBuffer(rcOpenColorBuffer);
-    dec->set_rcCloseColorBuffer(rcCloseColorBuffer);
-    dec->set_rcSetWindowColorBuffer(rcSetWindowColorBuffer);
-    dec->set_rcFlushWindowColorBuffer(rcFlushWindowColorBuffer);
-    dec->set_rcMakeCurrent(rcMakeCurrent);
-    dec->set_rcFBPost(rcFBPost);
-    dec->set_rcFBSetSwapInterval(rcFBSetSwapInterval);
-    dec->set_rcBindTexture(rcBindTexture);
-    dec->set_rcBindRenderbuffer(rcBindRenderbuffer);
-    dec->set_rcColorBufferCacheFlush(rcColorBufferCacheFlush);
-    dec->set_rcReadColorBuffer(rcReadColorBuffer);
-    dec->set_rcUpdateColorBuffer(rcUpdateColorBuffer);
-    dec->set_rcOpenColorBuffer2(rcOpenColorBuffer2);
+    dec->rcGetRendererVersion = rcGetRendererVersion;
+    dec->rcGetEGLVersion = rcGetEGLVersion;
+    dec->rcQueryEGLString = rcQueryEGLString;
+    dec->rcGetGLString = rcGetGLString;
+    dec->rcGetNumConfigs = rcGetNumConfigs;
+    dec->rcGetConfigs = rcGetConfigs;
+    dec->rcChooseConfig = rcChooseConfig;
+    dec->rcGetFBParam = rcGetFBParam;
+    dec->rcCreateContext = rcCreateContext;
+    dec->rcDestroyContext = rcDestroyContext;
+    dec->rcCreateWindowSurface = rcCreateWindowSurface;
+    dec->rcDestroyWindowSurface = rcDestroyWindowSurface;
+    dec->rcCreateColorBuffer = rcCreateColorBuffer;
+    dec->rcOpenColorBuffer = rcOpenColorBuffer;
+    dec->rcCloseColorBuffer = rcCloseColorBuffer;
+    dec->rcSetWindowColorBuffer = rcSetWindowColorBuffer;
+    dec->rcFlushWindowColorBuffer = rcFlushWindowColorBuffer;
+    dec->rcMakeCurrent = rcMakeCurrent;
+    dec->rcFBPost = rcFBPost;
+    dec->rcFBSetSwapInterval = rcFBSetSwapInterval;
+    dec->rcBindTexture = rcBindTexture;
+    dec->rcBindRenderbuffer = rcBindRenderbuffer;
+    dec->rcColorBufferCacheFlush = rcColorBufferCacheFlush;
+    dec->rcReadColorBuffer = rcReadColorBuffer;
+    dec->rcUpdateColorBuffer = rcUpdateColorBuffer;
+    dec->rcOpenColorBuffer2 = rcOpenColorBuffer2;
 }
