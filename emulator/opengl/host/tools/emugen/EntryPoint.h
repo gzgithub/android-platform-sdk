@@ -47,6 +47,8 @@ public:
     void setCustomDecoder(bool state) { m_customDecoder = state; }
     bool notApi() const { return m_notApi; }
     void setNotApi(bool state) { m_notApi = state; }
+    bool flushOnEncode() const { return m_flushOnEncode; }
+    void setFlushOnEncode(bool state) { m_flushOnEncode = state; }
     int setAttribute(const std::string &line, size_t lc);
 
 private:
@@ -57,6 +59,7 @@ private:
     bool m_unsupported;
     bool m_customDecoder;
     bool m_notApi;
+    bool m_flushOnEncode;
 
     void err(unsigned int lc, const char *msg) {
         fprintf(stderr, "line %d: %s\n", lc, msg);
