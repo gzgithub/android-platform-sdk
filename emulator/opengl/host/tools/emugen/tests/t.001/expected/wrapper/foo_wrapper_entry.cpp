@@ -15,24 +15,24 @@ extern "C" {
 #ifndef GET_CONTEXT
 static foo_wrapper_context_t::CONTEXT_ACCESSOR_TYPE *getCurrentContext = NULL;
 void foo_wrapper_context_t::setContextAccessor(CONTEXT_ACCESSOR_TYPE *f) { getCurrentContext = f; }
-#define GET_CONTEXT foo_wrapper_context_t * ctx = getCurrentContext() 
+#define GET_CONTEXT foo_wrapper_context_t * ctx = getCurrentContext()
 #endif
 
 void fooAlphaFunc(FooInt func, FooFloat ref)
 {
-	GET_CONTEXT; 
-	 ctx->fooAlphaFunc( func, ref);
+	GET_CONTEXT;
+	ctx->fooAlphaFunc( func, ref);
 }
 
 FooBoolean fooIsBuffer(void* stuff)
 {
-	GET_CONTEXT; 
-	 return ctx->fooIsBuffer( stuff);
+	GET_CONTEXT;
+	return ctx->fooIsBuffer( stuff);
 }
 
 void fooUnsupported(void* params)
 {
-	GET_CONTEXT; 
-	 ctx->fooUnsupported( params);
+	GET_CONTEXT;
+	ctx->fooUnsupported( params);
 }
 
