@@ -854,16 +854,11 @@ int ApiGen::genDecoderImpl(const std::string &filename)
                 }
 
                 if (!v->isPointer()) {
-                    if (pass == PASS_FunctionCall) {
+                    if (pass == PASS_FunctionCall ||
+                        pass == PASS_DebugPrint) {
                         fprintf(fp,
                                 "Unpack<%s,uint%d_t>(ptr + %s)",
                                 v->type()->name().c_str(),
-                                v->type()->bytes() * 8,
-                                varoffset.c_str());
-                    }
-                    if (pass == PASS_DebugPrint) {
-                        fprintf(fp,
-                                "*(uint%d_t *)(ptr + %s)",
                                 v->type()->bytes() * 8,
                                 varoffset.c_str());
                     }
