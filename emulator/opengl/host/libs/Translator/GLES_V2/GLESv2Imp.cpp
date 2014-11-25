@@ -324,6 +324,7 @@ GL_APICALL void  GL_APIENTRY glBlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, G
 GL_APICALL void  GL_APIENTRY glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage){
     GET_CTX();
     SET_ERROR_IF(!GLESv2Validate::bufferTarget(target),GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validate::bufferUsage(usage),GL_INVALID_ENUM);
     SET_ERROR_IF(!ctx->isBindedBuffer(target),GL_INVALID_OPERATION);
     ctx->setBufferData(target,size,data,usage);
 }
