@@ -6,7 +6,8 @@
 #define OP_fooAlphaFunc 					200
 #define OP_fooIsBuffer 					201
 #define OP_fooUnsupported 					202
-#define OP_last 					203
+#define OP_fooDoEncoderFlush 					203
+#define OP_last 					204
 
 
 #endif
