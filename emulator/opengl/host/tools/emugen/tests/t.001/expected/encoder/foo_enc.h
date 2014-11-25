@@ -16,13 +16,6 @@ struct foo_encoder_context_t : public foo_client_context_t {
 	IOStream *m_stream;
 
 	foo_encoder_context_t(IOStream *stream);
-
-
 };
 
-extern "C" {
-	void fooAlphaFunc_enc(void *self , FooInt func, FooFloat ref);
-	FooBoolean fooIsBuffer_enc(void *self , void* stuff);
-	void fooUnsupported_enc(void *self , void* params);
-};
-#endif
+#endif  // GUARD_foo_encoder_context_t

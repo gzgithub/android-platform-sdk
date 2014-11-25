@@ -15,4 +15,4 @@ struct foo_decoder_context_t : public foo_server_context_t {
 
 };
 
-#endif
+#endif  // GUARD_foo_decoder_context_t
