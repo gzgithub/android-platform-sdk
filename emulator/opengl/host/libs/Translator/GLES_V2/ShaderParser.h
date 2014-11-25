@@ -26,7 +26,7 @@ class ShaderParser:public ObjectData{
 public:
     ShaderParser();
     ShaderParser(GLenum type);
-    void           setSrc(const Version& ver,GLsizei count,const GLchar** strings,const GLint* length);
+    void           setSrc(const Version& ver,GLsizei count,const GLchar* const* strings,const GLint* length);
     const char*    getOriginalSrc();
     const GLchar** parsedLines();
     GLenum         getType();
