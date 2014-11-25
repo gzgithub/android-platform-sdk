@@ -156,15 +156,6 @@ int ApiGen::genContext(const std::string & filename, SideType side)
         EntryPoint *e = &at(i);
         fprintf(fp, "\t%s_%s_proc_t %s;\n", e->name().c_str(), sideString(side), e->name().c_str());
     }
-    // accessors
-    fprintf(fp, "\t//Accessors \n");
-
-    for (size_t i = 0; i < size(); i++) {
-        EntryPoint *e = &at(i);
-        const char *n = e->name().c_str();
-        const char *s = sideString(side);
-        fprintf(fp, "\tvirtual %s_%s_proc_t set_%s(%s_%s_proc_t f) { %s_%s_proc_t retval = %s; %s = f; return retval;}\n", n, s, n, n, s, n, s,  n, n);
-    }
 
     // virtual destructor
     fprintf(fp, "\t virtual ~%s_%s_context_t() {}\n", m_basename.c_str(), sideString(side));
@@ -662,19 +653,17 @@ int ApiGen::genEncoderImpl(const std::string &filename)
     for (size_t i = 0; i < n; i++) {
         EntryPoint *e = &at(i);
         if (e->unsupported()) {
-            fprintf(fp, "\tset_%s((%s_%s_proc_t)(enc_unsupported));\n", e->name().c_str(), e->name().c_str(), sideString(CLIENT_SIDE));
+            fprintf(fp, 
+                    "\t%s = (%s_%s_proc_t)(enc_unsupported);\n",
+                    e->name().c_str(),
+                    e->name().c_str(),
+                    sideString(CLIENT_SIDE));
         } else {
-            fprintf(fp, "\tset_%s(%s_enc);\n", e->name().c_str(), e->name().c_str());
+            fprintf(fp,
+                    "\t%s = (%s_enc);\n",
+                    e->name().c_str(),
+                    e->name().c_str());
         }
-        /**
-           if (e->unsupsported()) {
-           fprintf(fp, "\tmemcpy((void *)(&%s), (const void *)(&enc_unsupported), sizeof(%s));\n",
-           e->name().c_str(),
-           e->name().c_str());
-           } else {
-           fprintf(fp, "\t%s = %s_enc;\n", e->name().c_str(), e->name().c_str());
-           }
-        **/
     }
     fprintf(fp, "}\n\n");
 
@@ -732,15 +721,13 @@ int ApiGen::genContextImpl(const std::string &filename, SideType side)
 
     // init function;
     fprintf(fp, "int %s::initDispatchByName(void *(*getProc)(const char *, void *userData), void *userData)\n{\n", classname.c_str());
-    fprintf(fp, "\tvoid *ptr;\n\n");
     for (size_t i = 0; i < n; i++) {
         EntryPoint *e = &at(i);
-        fprintf(fp, "\tptr = getProc(\"%s\", userData); set_%s((%s_%s_proc_t)ptr);\n",
+        fprintf(fp, "\t%s = (%s_%s_proc_t) getProc(\"%s\", userData);\n",
                 e->name().c_str(),
                 e->name().c_str(),
-                e->name().c_str(),
-                sideString(side));
-
+                sideString(side),
+                e->name().c_str());
     }
     fprintf(fp, "\treturn 0;\n");
     fprintf(fp, "}\n\n");
