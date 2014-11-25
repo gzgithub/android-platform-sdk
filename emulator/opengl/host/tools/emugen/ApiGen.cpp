@@ -110,7 +110,7 @@ int ApiGen::genFuncTable(const std::string &filename, SideType side)
     fprintf(fp, "#ifndef __%s_%s_ftable_t_h\n", m_basename.c_str(), sideString(side));
     fprintf(fp, "#define __%s_%s_ftable_t_h\n", m_basename.c_str(), sideString(side));
     fprintf(fp, "\n\n");
-    fprintf(fp, "static struct _%s_funcs_by_name {\n", m_basename.c_str());
+    fprintf(fp, "static const struct _%s_funcs_by_name {\n", m_basename.c_str());
     fprintf(fp,
             "\tconst char *name;\n" \
             "\tvoid *proc;\n" \
@@ -123,7 +123,7 @@ int ApiGen::genFuncTable(const std::string &filename, SideType side)
         fprintf(fp, "\t{\"%s\", (void*)%s},\n", e->name().c_str(), e->name().c_str());
     }
     fprintf(fp, "};\n");
-    fprintf(fp, "static int %s_num_funcs = sizeof(%s_funcs_by_name) / sizeof(struct _%s_funcs_by_name);\n",
+    fprintf(fp, "static const int %s_num_funcs = sizeof(%s_funcs_by_name) / sizeof(struct _%s_funcs_by_name);\n",
             m_basename.c_str(), m_basename.c_str(), m_basename.c_str());
     fprintf(fp, "\n\n#endif\n");
     return 0;
@@ -219,7 +219,7 @@ int ApiGen::genEntryPoints(const std::string & filename, SideType side)
     fprintf(fp,
             "void %s_%s_context_t::setContextAccessor(CONTEXT_ACCESSOR_TYPE *f) { getCurrentContext = f; }\n",
             m_basename.c_str(), sideString(side));
-    fprintf(fp, "#define GET_CONTEXT %s_%s_context_t * ctx = getCurrentContext() \n",
+    fprintf(fp, "#define GET_CONTEXT %s_%s_context_t * ctx = getCurrentContext()\n",
                 m_basename.c_str(), sideString(side));
     fprintf(fp, "#endif\n\n");
 
@@ -228,7 +228,7 @@ int ApiGen::genEntryPoints(const std::string & filename, SideType side)
         EntryPoint *e = &at(i);
         e->print(fp);
         fprintf(fp, "{\n");
-        fprintf(fp, "\tGET_CONTEXT; \n");
+        fprintf(fp, "\tGET_CONTEXT;\n");
 
         bool shouldReturn = !e->retval().isVoid();
         bool shouldCallWithContext = (side == CLIENT_SIDE);
@@ -239,7 +239,7 @@ int ApiGen::genEntryPoints(const std::string & filename, SideType side)
                     fprintf(fp, "\t%s\n", e->vars()[j].paramCheckExpression().c_str());
             }
         }
-        fprintf(fp, "\t %sctx->%s(%s",
+        fprintf(fp, "\t%sctx->%s(%s",
                 shouldReturn ? "return " : "",
                 e->name().c_str(),
                 shouldCallWithContext ? "ctx" : "");
@@ -325,18 +325,10 @@ int ApiGen::genEncoderHeader(const std::string &filename)
             classname.c_str(), m_basename.c_str(), sideString(CLIENT_SIDE));
     fprintf(fp, "\tIOStream *m_stream;\n\n");
 
-    fprintf(fp, "\t%s(IOStream *stream);\n\n", classname.c_str());
-    fprintf(fp, "\n};\n\n");
+    fprintf(fp, "\t%s(IOStream *stream);\n", classname.c_str());
+    fprintf(fp, "};\n\n");
 
-    fprintf(fp,"extern \"C\" {\n");
-
-    for (size_t i = 0; i < size(); i++) {
-        fprintf(fp, "\t");
-        at(i).print(fp, false, "_enc", /* classname + "::" */"", "void *self");
-        fprintf(fp, ";\n");
-    }
-    fprintf(fp, "};\n");
-    fprintf(fp, "#endif");
+    fprintf(fp, "#endif  // GUARD_%s", classname.c_str());
 
     fclose(fp);
     return 0;
@@ -453,15 +445,20 @@ int ApiGen::genEncoderImpl(const std::string &filename)
     fprintf(fp, "\n\n#include <string.h>\n");
     fprintf(fp, "#include \"%s_opcodes.h\"\n\n", m_basename.c_str());
     fprintf(fp, "#include \"%s_enc.h\"\n\n\n", m_basename.c_str());
-    fprintf(fp, "#include <stdio.h>\n");
-    std::string classname = m_basename + "_encoder_context_t";
-    size_t n = size();
+    fprintf(fp, "#include <stdio.h>\n\n");
+    fprintf(fp, "namespace {\n\n");
 
     // unsupport printout
     fprintf(fp,
-            "static void enc_unsupported()\n{\n\tALOGE(\"Function is unsupported\\n\");\n}\n\n");
+            "void enc_unsupported()\n"
+            "{\n"
+            "\tALOGE(\"Function is unsupported\\n\");\n"
+            "}\n\n");
 
     // entry points;
+    std::string classname = m_basename + "_encoder_context_t";
+
+    size_t n = size();
     for (size_t i = 0; i < n; i++) {
         EntryPoint *e = &at(i);
 
@@ -646,6 +643,8 @@ int ApiGen::genEncoderImpl(const std::string &filename)
         fprintf(fp, "}\n\n");
     }
 
+    fprintf(fp, "}  // namespace\n\n");
+
     // constructor
     fprintf(fp, "%s::%s(IOStream *stream)\n{\n", classname.c_str(), classname.c_str());
     fprintf(fp, "\tm_stream = stream;\n\n");
@@ -654,13 +653,13 @@ int ApiGen::genEncoderImpl(const std::string &filename)
         EntryPoint *e = &at(i);
         if (e->unsupported()) {
             fprintf(fp, 
-                    "\t%s = (%s_%s_proc_t)(enc_unsupported);\n",
+                    "\tthis->%s = (%s_%s_proc_t) &enc_unsupported;\n",
                     e->name().c_str(),
                     e->name().c_str(),
                     sideString(CLIENT_SIDE));
         } else {
             fprintf(fp,
-                    "\t%s = (%s_enc);\n",
+                    "\tthis->%s = &%s_enc;\n",
                     e->name().c_str(),
                     e->name().c_str());
         }
@@ -698,7 +697,7 @@ int ApiGen::genDecoderHeader(const std::string &filename)
             classname.c_str(), m_basename.c_str(), sideString(SERVER_SIDE));
     fprintf(fp, "\tsize_t decode(void *buf, size_t bufsize, IOStream *stream);\n");
     fprintf(fp, "\n};\n\n");
-    fprintf(fp, "#endif\n");
+    fprintf(fp, "#endif  // GUARD_%s\n", classname.c_str());
 
     fclose(fp);
     return 0;
