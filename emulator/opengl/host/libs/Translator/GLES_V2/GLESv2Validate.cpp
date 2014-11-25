@@ -113,6 +113,7 @@ bool GLESv2Validate::pixelStoreParam(GLenum param){
 bool GLESv2Validate::readPixelFrmt(GLenum format){
     switch(format) {
     case GL_ALPHA:
+    case GL_LUMINANCE_ALPHA:
     case GL_RGB:
     case GL_RGBA:
         return true;
