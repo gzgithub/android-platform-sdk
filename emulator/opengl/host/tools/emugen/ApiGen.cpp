@@ -756,6 +756,21 @@ int ApiGen::genDecoderImpl(const std::string &filename)
     fprintf(fp, "#include <stdio.h>\n\n");
     fprintf(fp, "typedef unsigned int tsize_t; // Target \"size_t\", which is 32-bit for now. It may or may not be the same as host's size_t when emugen is compiled.\n\n");
 
+    // helper macros
+    fprintf(fp,
+            "#ifdef DEBUG_PRINTOUT\n"
+            "#  define DEBUG(...) fprintf(stderr, __VA_ARGS__)\n"
+            "#else\n"
+            "#  define DEBUG(...)  ((void)0)\n"
+            "#endif\n\n");
+
+    fprintf(fp,
+            "#ifdef CHECK_GLERROR\n"
+            "#  define SET_LASTCALL(name)  sprintf(lastCall, #name)\n"
+            "#else\n"
+            "#  define SET_LASTCALL(name)  ((void)0)\n"
+            "#endif\n\n");
+
     // helper templates
     fprintf(fp, "using namespace emugl;\n\n");
 
@@ -817,9 +832,8 @@ int ApiGen::genDecoderImpl(const std::string &filename)
                     fprintf(fp, "this"); // add a context to the call
                 }
             } else if (pass == PASS_DebugPrint) {
-                fprintf(fp, "#ifdef DEBUG_PRINTOUT\n");
                 fprintf(fp,
-                        "\t\t\tfprintf(stderr,\"%s(%%p): %s(%s)\\n\", stream",
+                        "\t\t\tDEBUG(\"%s(%%p): %s(%s)\\n\", stream",
                         m_basename.c_str(),
                         e->name().c_str(),
                         printString.c_str());
@@ -1010,9 +1024,6 @@ int ApiGen::genDecoderImpl(const std::string &filename)
                 pass == PASS_DebugPrint) {
                 fprintf(fp, ");\n");
             }
-            if (pass == PASS_DebugPrint) {
-                fprintf(fp, "#endif\n");
-            }
 
             if (pass == PASS_TmpBuffAlloc) {
                 if (!e->retval().isVoid() && !e->retval().isPointer()) {
@@ -1045,9 +1056,7 @@ int ApiGen::genDecoderImpl(const std::string &filename)
 
         } // pass;
         fprintf(fp, "\t\t\t}\n");
-        fprintf(fp, "#ifdef CHECK_GL_ERROR\n");
-        fprintf(fp, "\t\t\tsprintf(lastCall, \"%s\");\n", e->name().c_str());
-        fprintf(fp, "#endif\n");
+        fprintf(fp, "\t\t\tSET_LASTCALL(\"%s\");\n", e->name().c_str());
         fprintf(fp, "\t\t\tbreak;\n");
 
         delete [] tmpBufOffset;
