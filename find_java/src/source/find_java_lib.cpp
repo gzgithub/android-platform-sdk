@@ -554,9 +554,12 @@ bool getJavaVersion(CPath &javaPath, CString *outVersionStr, int *outVersionInt)
         // care about specific ordering or case-senstiviness.
         // We only captures roughtly the first line in lower case.
         char *j = strstr(first32, "java");
+        if (!j) {
+            j = strstr(first32, "openjdk");
+        }
         char *v = strstr(first32, "version");
         if ((gIsConsole || gIsDebug) && (!j || !v)) {
-            fprintf(stderr, "Error: keywords 'java version' not found in '%s'\n", first32);
+            fprintf(stderr, "Error: keywords 'java|openjdk version' not found in '%s'\n", first32);
         }
         if (j != NULL && v != NULL) {
             result = extractJavaVersion(first32, index, outVersionStr, outVersionInt);
