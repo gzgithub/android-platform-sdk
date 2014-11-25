@@ -786,8 +786,8 @@ int ApiGen::genDecoderImpl(const std::string &filename)
 \tchar lastCall[256] = {0}; \n\
 #endif \n\
 \twhile ((len - pos >= 8) && !unknownOpcode) {   \n\
-\t\tint opcode = *(int *)ptr;   \n\
-\t\tunsigned int packetLen = *(int *)(ptr + 4);\n\
+\t\tuint32_t opcode = *(uint32_t *)ptr;   \n\
+\t\tsize_t packetLen = *(uint32_t *)(ptr + 4);\n\
 \t\tif (len - pos < packetLen)  return pos; \n\
 \t\tswitch(opcode) {\n");
 
@@ -804,8 +804,7 @@ int ApiGen::genDecoderImpl(const std::string &filename)
         printString += "";
         // TODO - add for return value;
 
-        fprintf(fp, "\t\t\tcase OP_%s:\n", e->name().c_str());
-        fprintf(fp, "\t\t\t{\n");
+        fprintf(fp, "\t\tcase OP_%s: {\n", e->name().c_str());
 
         bool totalTmpBuffExist = false;
         std::string totalTmpBuffOffset = "0";
@@ -1049,15 +1048,12 @@ int ApiGen::genDecoderImpl(const std::string &filename)
                 if (totalTmpBuffExist) {
                     fprintf(fp, "\t\t\tstream->flush();\n");
                 }
-
-                fprintf(fp, "\t\t\tpos += *(uint32_t *)(ptr + 4);\n");
-                fprintf(fp, "\t\t\tptr += *(uint32_t *)(ptr + 4);\n");
             }
 
         } // pass;
-        fprintf(fp, "\t\t\t}\n");
         fprintf(fp, "\t\t\tSET_LASTCALL(\"%s\");\n", e->name().c_str());
         fprintf(fp, "\t\t\tbreak;\n");
+        fprintf(fp, "\t\t}\n");
 
         delete [] tmpBufOffset;
     }
@@ -1070,6 +1066,11 @@ int ApiGen::genDecoderImpl(const std::string &filename)
         fprintf(fp, "\tif (err) fprintf(stderr, \"%s Error: 0x%%X in %%s\\n\", err, lastCall);\n", m_basename.c_str());
         fprintf(fp, "#endif\n");
     }
+
+    fprintf(fp, "\t\tif (!unknownOpcode) {\n");
+    fprintf(fp, "\t\t\tpos += packetLen;\n");
+    fprintf(fp, "\t\t\tptr += packetLen;\n");
+    fprintf(fp, "\t\t}\n");
     fprintf(fp, "\t} // while\n");
     fprintf(fp, "\treturn pos;\n");
     fprintf(fp, "}\n");
