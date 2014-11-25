@@ -9,6 +9,7 @@ extern "C" {
 	void fooAlphaFunc(FooInt func, FooFloat ref);
 	FooBoolean fooIsBuffer(void* stuff);
 	void fooUnsupported(void* params);
+	void fooDoEncoderFlush(FooInt param);
 };
 
 #endif
@@ -34,5 +35,11 @@ void fooUnsupported(void* params)
 {
 	GET_CONTEXT;
 	ctx->fooUnsupported( params);
+}
+
+void fooDoEncoderFlush(FooInt param)
+{
+	GET_CONTEXT;
+	ctx->fooDoEncoderFlush( param);
 }
 

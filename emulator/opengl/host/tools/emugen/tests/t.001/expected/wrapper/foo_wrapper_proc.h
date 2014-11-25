@@ -12,6 +12,7 @@
 typedef void (foo_APIENTRY *fooAlphaFunc_wrapper_proc_t) (FooInt, FooFloat);
 typedef FooBoolean (foo_APIENTRY *fooIsBuffer_wrapper_proc_t) (void*);
 typedef void (foo_APIENTRY *fooUnsupported_wrapper_proc_t) (void*);
+typedef void (foo_APIENTRY *fooDoEncoderFlush_wrapper_proc_t) (FooInt);
 
 
 #endif

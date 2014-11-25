@@ -11,6 +11,7 @@ struct foo_client_context_t {
 	fooAlphaFunc_client_proc_t fooAlphaFunc;
 	fooIsBuffer_client_proc_t fooIsBuffer;
 	fooUnsupported_client_proc_t fooUnsupported;
+	fooDoEncoderFlush_client_proc_t fooDoEncoderFlush;
 	 virtual ~foo_client_context_t() {}
 
 	typedef foo_client_context_t *CONTEXT_ACCESSOR_TYPE(void);
