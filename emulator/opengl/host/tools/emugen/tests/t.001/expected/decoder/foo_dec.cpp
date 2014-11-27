@@ -77,6 +77,14 @@ size_t foo_decoder_context_t::decode(void *buf, size_t len, IOStream *stream)
 			SET_LASTCALL("fooDoEncoderFlush");
 			break;
 		}
+		case OP_fooTakeConstVoidPtrConstPtr: {
+			uint32_t size_param __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
+			InputBuffer inptr_param(ptr + 8 + 4, size_param);
+			DEBUG("foo(%p): fooTakeConstVoidPtrConstPtr(%p(%u) )\n", stream,(const void* const*)(inptr_param.get()), size_param);
+			this->fooTakeConstVoidPtrConstPtr((const void* const*)(inptr_param.get()));
+			SET_LASTCALL("fooTakeConstVoidPtrConstPtr");
+			break;
+		}
 			default:
 				unknownOpcode = true;
 		} //switch
