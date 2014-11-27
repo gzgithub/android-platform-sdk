@@ -371,10 +371,10 @@ glGenVertexArraysOES
 glDiscardFramebufferEXT
 	len attachments (numAttachments * sizeof(GLenum))
 
-#void glMultiDrawArraysEXT(GLenum mode, GLint *first, GLsizei *count, GLsizei primcount)
+#void glMultiDrawArraysEXT(GLenum mode, const GLint *first, const GLsizei *count, GLsizei primcount)
 glMultiDrawArraysEXT
 	flag unsupported
-#void glMultiDrawElementsEXT(GLenum mode, GLsizei *count, GLenum type, GLvoid *indices, GLsizei primcount)
+#void glMultiDrawElementsEXT(GLenum mode, GLsizei *count, GLenum type, const GLvoid* const *indices, GLsizei primcount)
 glMultiDrawElementsEXT
 	flag unsupported
 

@@ -31,3 +31,4 @@ GLvoid* 32 0x%08x
 GLchar* 32 0x%08x
 GLvoid** 32 0x%08x
 void* 32 0x%08x
+GLvoid*const* 32 0x%08x
