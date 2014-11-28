@@ -13,13 +13,16 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-#include <stdio.h>
 #include "EntryPoint.h"
-#include <string>
+
+#include "Parser.h"
 #include "TypeFactory.h"
 #include "strUtils.h"
-#include <sstream>
 
+#include <sstream>
+#include <string>
+
+#include <stdio.h>
 
 EntryPoint::EntryPoint()
 {
@@ -39,59 +42,6 @@ void EntryPoint::reset()
     m_vars.empty();
 }
 
-bool parseTypeField(const std::string & f, std::string *vartype, std::string *varname)
-{
-    size_t pos = 0, last;
-    bool done = false;
-
-
-    *vartype = "";
-    if (varname != NULL) *varname = "";
-
-    enum { ST_TYPE, ST_NAME, ST_END } state = ST_TYPE;
-
-    while(!done) {
-
-        std::string str = getNextToken(f, pos, &last, WHITESPACE);
-        if (str.size() == 0) break;
-
-        switch(state) {
-        case ST_TYPE:
-            if (str == "const") {
-                pos = last;
-                *vartype = "const ";
-            } else {
-                // must be a type name;
-                *vartype += str;
-                state = ST_NAME;
-                pos = last;
-            }
-            break;
-        case ST_NAME:
-            if (str.size() == 0) {
-                done = true;
-            } else if (str == "*") {
-                (*vartype) += "*";
-                pos = last;
-            } else if (varname == NULL) {
-                done = true;
-            } else {
-                while (str[0] == '*') {
-                    (*vartype) += "*";
-                    str[0] = ' ';
-                    str = trim(str);
-                }
-                *varname = str;
-                done = true;
-            }
-            break;
-        case ST_END:
-            break;
-        }
-    }
-    return true;
-}
-
 // return true for valid line (need to get into the entry points list)
 bool EntryPoint::parse(unsigned int lc, const std::string & str)
 {
@@ -109,9 +59,15 @@ bool EntryPoint::parse(unsigned int lc, const std::string & str)
     pos = last + 1;
     // return type
     field = getNextToken(linestr, pos, &last, ",)");
+
+    std::string error;
     std::string retTypeName;
-    if (!parseTypeField(field, &retTypeName, NULL)) {
-        fprintf(stderr, "line: %d: Parsing error in field <%s>\n", lc, field.c_str());
+    if (!parseTypeDeclaration(field, &retTypeName, &error)) {
+        fprintf(stderr,
+                "line: %d: Parsing error in field <%s>: %s\n",
+                lc, 
+                field.c_str(), 
+                error.c_str());
         return false;
     }
     pos = last + 1;
@@ -120,7 +76,12 @@ bool EntryPoint::parse(unsigned int lc, const std::string & str)
         fprintf(stderr, "UNKNOWN retval: %s\n", linestr.c_str());
     }
 
-    m_retval.init(std::string(""), theType, std::string(""), Var::POINTER_OUT, std::string(""), std::string(""));
+    m_retval.init(std::string(""),
+                  theType,
+                  std::string(""),
+                  Var::POINTER_OUT,
+                  std::string(""),
+                  std::string(""));
 
     // function name
     m_name = getNextToken(linestr, pos, &last, ",)");
@@ -130,9 +91,18 @@ bool EntryPoint::parse(unsigned int lc, const std::string & str)
     int nvars = 0;
     while (pos < linestr.size() - 1) {
         field = getNextToken(linestr, pos, &last, ",)");
+        if (field == "void") {
+            // 'void' is used as a special case for functions that don't take
+            // parameters at all.
+            break;
+        }
         std::string vartype, varname;
-        if (!parseTypeField(field, &vartype, &varname)) {
-            fprintf(stderr, "line: %d: Parsing error in field <%s>\n", lc, field.c_str());
+        if (!parseParameterDeclaration(field, &vartype, &varname, &error)) {
+            fprintf(stderr,
+                    "line: %d: Parsing error in field <%s>\n",
+                    lc,
+                    field.c_str(),
+                    error.c_str());
             return false;
         }
         nvars++;

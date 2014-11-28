@@ -14,6 +14,7 @@ int foo_client_context_t::initDispatchByName(void *(*getProc)(const char *, void
 	fooIsBuffer = (fooIsBuffer_client_proc_t) getProc("fooIsBuffer", userData);
 	fooUnsupported = (fooUnsupported_client_proc_t) getProc("fooUnsupported", userData);
 	fooDoEncoderFlush = (fooDoEncoderFlush_client_proc_t) getProc("fooDoEncoderFlush", userData);
+	fooTakeConstVoidPtrConstPtr = (fooTakeConstVoidPtrConstPtr_client_proc_t) getProc("fooTakeConstVoidPtrConstPtr", userData);
 	return 0;
 }
 

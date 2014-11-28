@@ -14,12 +14,16 @@
 * limitations under the License.
 */
 #include "TypeFactory.h"
+
+#include "Parser.h"
 #include "VarType.h"
-#include <string>
+#include "strUtils.h"
+
 #include <map>
+#include <string>
+
 #include <stdio.h>
 #include <stdlib.h>
-#include "strUtils.h"
 
 
 TypeFactory * TypeFactory::m_instance = NULL;
@@ -66,6 +70,7 @@ int TypeFactory::initFromFile(const std::string &filename)
         size_t pos = 0, last;
         std::string name;
         name = getNextToken(str, pos, &last, WHITESPACE);
+        name = normalizeTypeDeclaration(name);
         if (name.size() == 0) {
             fprintf(stderr, "Error: %d : missing type name\n", lc);
             return -2;

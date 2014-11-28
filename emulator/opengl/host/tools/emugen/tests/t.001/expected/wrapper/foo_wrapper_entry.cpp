@@ -10,6 +10,7 @@ extern "C" {
 	FooBoolean fooIsBuffer(void* stuff);
 	void fooUnsupported(void* params);
 	void fooDoEncoderFlush(FooInt param);
+	void fooTakeConstVoidPtrConstPtr(const void* const* param);
 };
 
 #endif
@@ -41,5 +42,11 @@ void fooDoEncoderFlush(FooInt param)
 {
 	GET_CONTEXT;
 	ctx->fooDoEncoderFlush( param);
+}
+
+void fooTakeConstVoidPtrConstPtr(const void* const* param)
+{
+	GET_CONTEXT;
+	ctx->fooTakeConstVoidPtrConstPtr( param);
 }
 

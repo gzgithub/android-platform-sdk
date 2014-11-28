@@ -14,6 +14,7 @@ int foo_wrapper_context_t::initDispatchByName(void *(*getProc)(const char *, voi
 	fooIsBuffer = (fooIsBuffer_wrapper_proc_t) getProc("fooIsBuffer", userData);
 	fooUnsupported = (fooUnsupported_wrapper_proc_t) getProc("fooUnsupported", userData);
 	fooDoEncoderFlush = (fooDoEncoderFlush_wrapper_proc_t) getProc("fooDoEncoderFlush", userData);
+	fooTakeConstVoidPtrConstPtr = (fooTakeConstVoidPtrConstPtr_wrapper_proc_t) getProc("fooTakeConstVoidPtrConstPtr", userData);
 	return 0;
 }
 
