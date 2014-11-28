@@ -7,3 +7,4 @@ FooVoid 0 %x
 FooChar 8 %d
 FooChar* 32 0x%08x
 void* 32 0x%08x
+void*const* 32 0x%08x

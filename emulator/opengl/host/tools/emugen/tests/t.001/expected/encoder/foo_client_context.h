@@ -12,6 +12,7 @@ struct foo_client_context_t {
 	fooIsBuffer_client_proc_t fooIsBuffer;
 	fooUnsupported_client_proc_t fooUnsupported;
 	fooDoEncoderFlush_client_proc_t fooDoEncoderFlush;
+	fooTakeConstVoidPtrConstPtr_client_proc_t fooTakeConstVoidPtrConstPtr;
 	 virtual ~foo_client_context_t() {}
 
 	typedef foo_client_context_t *CONTEXT_ACCESSOR_TYPE(void);

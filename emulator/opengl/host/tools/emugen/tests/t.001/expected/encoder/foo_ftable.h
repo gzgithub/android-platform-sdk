@@ -12,6 +12,7 @@ static const struct _foo_funcs_by_name {
 	{"fooIsBuffer", (void*)fooIsBuffer},
 	{"fooUnsupported", (void*)fooUnsupported},
 	{"fooDoEncoderFlush", (void*)fooDoEncoderFlush},
+	{"fooTakeConstVoidPtrConstPtr", (void*)fooTakeConstVoidPtrConstPtr},
 };
 static const int foo_num_funcs = sizeof(foo_funcs_by_name) / sizeof(struct _foo_funcs_by_name);
 
