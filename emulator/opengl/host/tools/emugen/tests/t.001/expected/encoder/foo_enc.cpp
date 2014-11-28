@@ -70,6 +70,23 @@ void fooDoEncoderFlush_enc(void *self , FooInt param)
 	stream->flush();
 }
 
+void fooTakeConstVoidPtrConstPtr_enc(void *self , const void* const* param)
+{
+
+	foo_encoder_context_t *ctx = (foo_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+
+	const unsigned int __size_param = ;
+	 unsigned char *ptr;
+	 const size_t packetSize = 8 + __size_param + 1*4;
+	ptr = stream->alloc(packetSize);
+	int tmp = OP_fooTakeConstVoidPtrConstPtr;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &packetSize, 4);  ptr += 4;
+
+	*(unsigned int *)(ptr) = __size_param; ptr += 4;
+	memcpy(ptr, param, __size_param);ptr += __size_param;
+}
+
 }  // namespace
 
 foo_encoder_context_t::foo_encoder_context_t(IOStream *stream)
@@ -80,5 +97,6 @@ foo_encoder_context_t::foo_encoder_context_t(IOStream *stream)
 	this->fooIsBuffer = &fooIsBuffer_enc;
 	this->fooUnsupported = (fooUnsupported_client_proc_t) &enc_unsupported;
 	this->fooDoEncoderFlush = &fooDoEncoderFlush_enc;
+	this->fooTakeConstVoidPtrConstPtr = &fooTakeConstVoidPtrConstPtr_enc;
 }
 

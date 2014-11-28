@@ -13,6 +13,7 @@ typedef void (foo_APIENTRY *fooAlphaFunc_server_proc_t) (FooInt, FooFloat);
 typedef FooBoolean (foo_APIENTRY *fooIsBuffer_server_proc_t) (void*);
 typedef void (foo_APIENTRY *fooUnsupported_server_proc_t) (void*);
 typedef void (foo_APIENTRY *fooDoEncoderFlush_server_proc_t) (FooInt);
+typedef void (foo_APIENTRY *fooTakeConstVoidPtrConstPtr_server_proc_t) (const void* const*);
 
 
 #endif
