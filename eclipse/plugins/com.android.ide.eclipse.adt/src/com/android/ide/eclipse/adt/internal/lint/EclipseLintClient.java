@@ -903,7 +903,7 @@ public class EclipseLintClient extends LintClient {
      * @return the issue registry to use to access detectors and issues
      */
     public static IssueRegistry getRegistry() {
-        return new BuiltinIssueRegistry();
+        return new EclipseLintIssueRegistry();
     }
 
     @Override
