@@ -35,7 +35,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.utils.GrabProcessOutput;
 import com.android.utils.GrabProcessOutput.IProcessOutput;
 import com.android.utils.GrabProcessOutput.Wait;
-import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.checks.ManifestDetector;
 import com.android.tools.lint.checks.SecurityDetector;
 import com.android.tools.lint.client.api.Configuration;
@@ -156,7 +155,7 @@ public class TemplateHandlerTest extends SdkLoadingTestCase {
     }
 
     public void testNewBlankProject() throws Exception {
-        Stopwatch stopwatch = new Stopwatch();
+        Stopwatch stopwatch = Stopwatch.createUnstarted();
         stopwatch.start();
         checkProjectWithActivity(null);
         stopwatch.stop();
@@ -268,7 +267,7 @@ public class TemplateHandlerTest extends SdkLoadingTestCase {
     // ---- Test support code below ----
 
     private void checkCreateActivityInProject(String activityName) throws Exception {
-        Stopwatch stopwatch = new Stopwatch();
+        Stopwatch stopwatch = Stopwatch.createUnstarted();
         stopwatch.start();
         File templateFile = findTemplate("activities", activityName);
         sProjectTestedSeparately.add(templateFile);
@@ -279,7 +278,7 @@ public class TemplateHandlerTest extends SdkLoadingTestCase {
     }
 
     private void checkCreateTemplate(String category, String name) throws Exception {
-        Stopwatch stopwatch = new Stopwatch();
+        Stopwatch stopwatch = Stopwatch.createUnstarted();
         stopwatch.start();
         File templateFile = findTemplate(category, name);
         assertNotNull(templateFile);
@@ -763,7 +762,7 @@ public class TemplateHandlerTest extends SdkLoadingTestCase {
         System.setProperty("com.android.tools.lint.bindir", AdtPrefs.getPrefs().getOsSdkFolder()
                 + File.separator + FD_TOOLS);
 
-        LintDriver driver = new LintDriver(new BuiltinIssueRegistry(), new LintClient() {
+        LintDriver driver = new LintDriver(EclipseLintClient.getRegistry(), new LintClient() {
             @Override
             public void report(@NonNull Context context,
                     @NonNull Issue issue, @NonNull Severity severity,
