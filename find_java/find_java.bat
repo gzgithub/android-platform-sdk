@@ -24,7 +24,7 @@ rem   http://technet.microsoft.com/en-us/library/bb490890.aspx
 rem Query whether this system is 32-bit or 64-bit
 rem See also: http://stackoverflow.com/a/24590583/1299302
 reg Query "HKLM\Hardware\Description\System\CentralProcessor\0" |^
-find /i "x86" > NUL && set arch_ext=32 || set arch_ext=64
+find /i "x86" > NUL && set arch_ext=32|| set arch_ext=64
 
 rem Check we have a valid Java.exe in the path. The return code will
 rem be 0 if the command worked or 1 if the exec failed (program not found).
