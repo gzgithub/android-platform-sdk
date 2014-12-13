@@ -46,6 +46,7 @@ def artifacts = [
         'lint-api'            : "com.android.tools.lint:lint-api:$ext.baseVersion",
         'lint-checks'         : "com.android.tools.lint:lint-checks:$ext.baseVersion",
         'asset-studio'        : "com.android.tools:asset-studio:$ext.baseVersion",
+        'annotations'         : "com.android.tools:annotations:$ext.baseVersion",
         'common'              : "com.android.tools:common:$ext.baseVersion",
         'dvlib'               : "com.android.tools:dvlib:$ext.baseVersion",
         'hierarchyviewer2lib' : "com.android.tools:hierarchyviewer2lib:$ext.baseVersion",
