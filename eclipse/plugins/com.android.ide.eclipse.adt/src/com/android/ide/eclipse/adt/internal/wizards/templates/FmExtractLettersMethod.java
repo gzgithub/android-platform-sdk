@@ -15,12 +15,12 @@
  */
 package com.android.ide.eclipse.adt.internal.wizards.templates;
 
-import java.util.List;
-
 import freemarker.template.SimpleScalar;
 import freemarker.template.TemplateMethodModel;
 import freemarker.template.TemplateModel;
 import freemarker.template.TemplateModelException;
+
+import java.util.List;
 
 /**
  * Method invoked by FreeMarker to extract letters from a string; this will remove
