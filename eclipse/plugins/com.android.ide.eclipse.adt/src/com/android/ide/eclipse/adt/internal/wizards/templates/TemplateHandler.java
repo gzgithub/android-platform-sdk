@@ -43,9 +43,15 @@ import com.android.ide.eclipse.adt.internal.editors.layout.gle2.DomUtilities;
 import com.android.ide.eclipse.adt.internal.project.BaseProjectHelper;
 import com.android.ide.eclipse.adt.internal.sdk.AdtManifestMergeCallback;
 import com.android.manifmerger.ManifestMerger;
+import com.android.manifmerger.ManifestMerger2;
+import com.android.manifmerger.ManifestMerger2.Invoker.Feature;
+import com.android.manifmerger.ManifestMerger2.MergeType;
 import com.android.manifmerger.MergerLog;
+import com.android.manifmerger.MergingReport;
+import com.android.manifmerger.XmlDocument;
 import com.android.resources.ResourceFolderType;
 import com.android.utils.SdkUtils;
+import com.android.utils.StdLogger;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
@@ -351,7 +357,9 @@ class TemplateHandler {
         paramMap.put("escapeXmlAttribute", new FmEscapeXmlStringMethod());          //$NON-NLS-1$
         paramMap.put("escapeXmlText", new FmEscapeXmlStringMethod());               //$NON-NLS-1$
         paramMap.put("escapeXmlString", new FmEscapeXmlStringMethod());             //$NON-NLS-1$
+        paramMap.put("escapePropertyValue", new FmEscapePropertyValueMethod());     //$NON-NLS-1$
         paramMap.put("extractLetters", new FmExtractLettersMethod());               //$NON-NLS-1$
+        paramMap.put("hasDependency", new FmHasDependencyMethod(paramMap));         //$NON-NLS-1$
 
         // This should be handled better: perhaps declared "required packages" as part of the
         // inputs? (It would be better if we could conditionally disable template based
@@ -757,7 +765,17 @@ class TemplateHandler {
         boolean ok;
         String fileName = to.getName();
         if (fileName.equals(SdkConstants.FN_ANDROID_MANIFEST_XML)) {
-            modified = ok = mergeManifest(currentDocument, fragment);
+            if (Boolean.getBoolean("adt.use_old_manifest_merger")) {
+                modified = ok = mergeManifest(currentDocument, fragment);
+            } else {
+                XmlDocument doc = mergeManifest(currentXml, xml);
+                if (doc != null) {
+                    currentDocument = doc.getXml();
+                    ok = modified = true;
+                } else {
+                    ok = modified = false;
+                }
+            }
         } else {
             // Merge plain XML files
             String parentFolderName = to.getParent().getName();
@@ -922,6 +940,41 @@ class TemplateHandler {
         return currentManifest != null &&
                 fragment != null &&
                 merger.process(currentManifest, fragment);
+    }
+
+    /** Merges the given manifest fragment into the given manifest file */
+    @Nullable
+    private static XmlDocument mergeManifest(@NonNull String currentText, @NonNull String mergeText) {
+        File mergeFile = null;
+        File currentFile = null;
+        try {
+            mergeFile = File.createTempFile("manifmerge", DOT_XML);
+            currentFile = File.createTempFile("main", DOT_XML);
+            Files.write(currentText, currentFile, Charsets.UTF_8);
+            Files.write(mergeText, mergeFile, Charsets.UTF_8);
+            StdLogger logger = new StdLogger(StdLogger.Level.INFO);
+            ManifestMerger2.Invoker merger = ManifestMerger2
+                    .newMerger(currentFile, logger, MergeType.APPLICATION)
+                    .withFeatures(Feature.EXTRACT_FQCNS)
+                    .addLibraryManifest(mergeFile);
+            MergingReport mergeReport = merger.merge();
+            if (mergeReport.getMergedDocument().isPresent()) {
+                return mergeReport.getMergedDocument().get();
+            }
+            return null;
+        } catch (IOException e) {
+            AdtPlugin.log(e, null);
+        } catch (ManifestMerger2.MergeFailureException e) {
+            AdtPlugin.log(e, null);
+        } finally {
+            if (mergeFile != null) {
+                mergeFile.delete();
+            }
+            if (currentFile != null) {
+                currentFile.delete();
+            }
+        }
+        return null;
     }
 
     /**
