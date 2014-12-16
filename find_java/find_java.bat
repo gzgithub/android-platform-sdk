@@ -22,9 +22,21 @@ rem Command-line reference:
 rem   http://technet.microsoft.com/en-us/library/bb490890.aspx
 
 rem Query whether this system is 32-bit or 64-bit
-rem See also: http://stackoverflow.com/a/24590583/1299302
-reg Query "HKLM\Hardware\Description\System\CentralProcessor\0" |^
-find /i "x86" > NUL && set arch_ext=32|| set arch_ext=64
+rem Note: Some users report that reg.exe is missing on their machine, so we
+rem check for that first, as we'd like to use it if we can.
+set sys_32=%SYSTEMROOT%\system32
+if exist %sys_32%\reg.exe (
+    rem This first-pass solution returns the correct architecture even if you
+    rem call this .bat file from a 32-bit process.
+    rem See also: http://stackoverflow.com/a/24590583/1299302
+    %sys_32%\reg query "HKLM\Hardware\Description\System\CentralProcessor\0"^
+    | %sys_32%\find /i "x86" > NUL && set arch_ext=32|| set arch_ext=64
+) else (
+    rem This fallback approach is simpler, but may misreport your architecture as
+    rem 32-bit if running from a 32-bit process. Still, it should serve to help
+    rem our users without reg.exe, at least.
+    if "%PROCESSOR_ARCHITECTURE%" == "x86" (set arch_ext=32) else (set arch_ext=64)
+)
 
 rem Check we have a valid Java.exe in the path. The return code will
 rem be 0 if the command worked or 1 if the exec failed (program not found).
