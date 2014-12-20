@@ -156,9 +156,9 @@ ADT_LIBS="make:ant-glob base:asset-studio base:lint-api base:lint-checks base:ni
           base:rule-api swt:sdkuilib swt:swtmenubar base:manifest-merger"
 ADT_PREBUILTS="\
     prebuilts/tools/common/freemarker/freemarker-2.3.19.jar \
-    prebuilts/tools/common/m2/repository/org/ow2/asm/asm/4.0/asm-4.0.jar \
-    prebuilts/tools/common/m2/repository/org/ow2/asm/asm-tree/4.0/asm-tree-4.0.jar \
-    prebuilts/tools/common/m2/repository/org/ow2/asm/asm-analysis/4.0/asm-analysis-4.0.jar \
+    prebuilts/tools/common/m2/repository/org/ow2/asm/asm/5.0.3/asm-5.0.3.jar \
+    prebuilts/tools/common/m2/repository/org/ow2/asm/asm-tree/5.0.3/asm-tree-5.0.3.jar \
+    prebuilts/tools/common/m2/repository/org/ow2/asm/asm-analysis/5.0.3/asm-analysis-5.0.3.jar \
     prebuilts/tools/common/m2/repository/com/android/tools/external/lombok/lombok-ast/0.2.2/lombok-ast-0.2.2.jar"
 
 LIBS="$LIBS $ADT_LIBS"
