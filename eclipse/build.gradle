@@ -63,9 +63,9 @@ def artifacts = [
 
         // prebuilts
         'ant-glob'                         : 'com.android.tools.external:ant-glob:1.0',
-        'asm-4.0'                          : 'org.ow2.asm:asm:4.0',
-        'asm-analysis-4.0'                 : 'org.ow2.asm:asm-analysis:4.0',
-        'asm-tree-4.0'                     : 'org.ow2.asm:asm-tree:4.0',
+        'asm-5.0.3'                        : 'org.ow2.asm:asm:5.0.3',
+        'asm-analysis-5.0.3'               : 'org.ow2.asm:asm-analysis:5.0.3',
+        'asm-tree-5.0.3'                   : 'org.ow2.asm:asm-tree:5.0.3',
         'commons-codec-1.4'                : 'commons-codec:commons-codec:1.4',
         'commons-compress-1.0'             : 'org.apache.commons:commons-compress:1.8.1',
         'commons-logging-1.1.1'            : 'commons-logging:commons-logging:1.1.1',
