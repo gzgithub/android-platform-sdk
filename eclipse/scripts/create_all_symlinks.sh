@@ -159,7 +159,7 @@ ADT_PREBUILTS="\
     prebuilts/tools/common/m2/repository/org/ow2/asm/asm/5.0.3/asm-5.0.3.jar \
     prebuilts/tools/common/m2/repository/org/ow2/asm/asm-tree/5.0.3/asm-tree-5.0.3.jar \
     prebuilts/tools/common/m2/repository/org/ow2/asm/asm-analysis/5.0.3/asm-analysis-5.0.3.jar \
-    prebuilts/tools/common/m2/repository/com/android/tools/external/lombok/lombok-ast/0.2.2/lombok-ast-0.2.2.jar"
+    prebuilts/tools/common/m2/repository/com/android/tools/external/lombok/lombok-ast/0.2.3/lombok-ast-0.2.3.jar"
 
 LIBS="$LIBS $ADT_LIBS"
 CP_FILES="$CP_FILES @:$ADT_DEST $ADT_LIBS $ADT_PREBUILTS"
