@@ -96,7 +96,7 @@
                 <artifact> <id>com.android.tools:uiautomatorviewer:22.9.0</id> </artifact>
 
                 <!-- prebuilts -->
-                <artifact> <id>com.android.tools.external.lombok:lombok-ast:0.2.2</id> </artifact>
+                <artifact> <id>com.android.tools.external.lombok:lombok-ast:0.2.3</id> </artifact>
                 <artifact> <id>com.android.tools.external:ant-glob:1.0</id> </artifact>
                 <artifact> <id>com.android.tools.external:liblzf:1.0</id> </artifact>
                 <artifact> <id>com.android.tools.external:libprotobuf-java-lite:2.3.0</id> </artifact>
