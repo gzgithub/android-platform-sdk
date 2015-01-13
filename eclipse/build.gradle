@@ -81,7 +81,7 @@ def artifacts = [
         'jfreechart-swt-1.0.9'             : 'jfree:jfreechart-swt:1.0.9',
         'kxml2-2.3.0'                      : 'net.sf.kxml:kxml2:2.3.0',
         'liblzf-1.0'                       : 'com.android.tools.external:liblzf:1.0',
-        'lombok-ast-0.2.2'                 : 'com.android.tools.external.lombok:lombok-ast:0.2.2',
+        'lombok-ast-0.2.3'                 : 'com.android.tools.external.lombok:lombok-ast:0.2.3',
         'propertysheet'                    : 'com.android.tools.external:propertysheet:1.0',
 ]
 
