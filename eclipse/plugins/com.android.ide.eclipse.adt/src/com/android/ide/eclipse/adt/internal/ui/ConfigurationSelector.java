@@ -94,6 +94,7 @@ import org.eclipse.swt.widgets.Text;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -870,7 +871,7 @@ public class ConfigurationSelector extends Composite {
             super(parent, LanguageQualifier.NAME);
 
             mLanguage = new Combo(this, SWT.DROP_DOWN);
-            Set<String> codes = LocaleManager.getLanguageCodes();
+            List<String> codes = LocaleManager.getLanguageCodes();
             String[] items = codes.toArray(new String[codes.size()]);
             Arrays.sort(items);
             mLanguage.setItems(items);
