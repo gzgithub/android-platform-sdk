@@ -43,8 +43,7 @@ import com.android.ide.common.resources.ResourceFolder;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.configuration.DeviceConfigHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LanguageQualifier;
-import com.android.ide.common.resources.configuration.RegionQualifier;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.ide.common.resources.configuration.ResourceQualifier;
 import com.android.ide.common.sdk.LoadStatus;
 import com.android.ide.eclipse.adt.AdtPlugin;
@@ -1333,7 +1332,7 @@ public class ConfigurationChooser extends Composite
             }
         }
 
-        String languageCode = locale.language.getValue();
+        String languageCode = locale.qualifier.getLanguage();
         String languageName = LocaleManager.getLanguageName(languageCode);
 
         if (!locale.hasRegion()) {
@@ -1350,7 +1349,7 @@ public class ConfigurationChooser extends Composite
                 return languageCode;
             }
         } else {
-            String regionCode = locale.region.getValue();
+            String regionCode = locale.qualifier.getRegion();
             if (!brief && languageName != null) {
                 String regionName = LocaleManager.getRegionName(regionCode);
                 if (regionName != null) {
@@ -1905,18 +1904,19 @@ public class ConfigurationChooser extends Composite
                 languages = projectRes.getLanguages();
 
                 for (String language : languages) {
-                    LanguageQualifier langQual = new LanguageQualifier(language);
-
                     // find the matching regions and add them
                     SortedSet<String> regions = projectRes.getRegions(language);
                     for (String region : regions) {
-                        RegionQualifier regionQual = new RegionQualifier(region);
-                        mLocaleList.add(Locale.create(langQual, regionQual));
+                        LocaleQualifier locale = LocaleQualifier.getQualifier(language + "-r" + region);
+                        if (locale != null) {
+                            mLocaleList.add(Locale.create(locale));
+                        }
                     }
 
                     // now the entry for the other regions the language alone
                     // create a region qualifier that will never be matched by qualified resources.
-                    mLocaleList.add(Locale.create(langQual));
+                    LocaleQualifier locale = new LocaleQualifier(language);
+                    mLocaleList.add(Locale.create(locale));
                 }
             }
 
