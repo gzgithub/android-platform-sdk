@@ -13,6 +13,8 @@ model {
                     }
                 }
             }
+            targetPlatform "windows32"
+            targetPlatform "windows64"
         }
     }
 }
@@ -39,9 +41,6 @@ sdk {
 }
 
 def getExeName(String name) {
-    // binaries will return a set of binaries
-    def binaries = components.findJava.binaries.matching { it.name == name }
-    // calling .exeFile on the set returns an array with the result from each item in the set...
-    return binaries.executableFile.get(0)
+    return binaries.getByName(name).executableFile
 }
 
