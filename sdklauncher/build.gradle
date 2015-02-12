@@ -2,33 +2,35 @@ apply plugin: 'c'
 apply plugin: 'sdk-files'
 apply plugin: 'windows-setup'
 
-model {
-    components {
-        sdkLauncher(NativeExecutableSpec) {
-            sources {
-                c {
-                    source {
-                        srcDir "src/source"
-                        include "**/*.c"
-                    }
-                }
+executables {
+    sdkLauncher {}
+}
+
+sources {
+    sdkLauncher {
+        c {
+            source {
+                srcDir "src/source"
+                include "**/*.c"
             }
-            targetPlatform "windows32"
         }
     }
 }
 
 sdk {
     windows {
-        item( { getExeName("sdkLauncherExecutable") } ) {
+        item( { getExeName("windows32SdkLauncherExecutable") } ) {
             into 'lib'
             name 'SDK Manager.exe'
-            builtBy 'sdkLauncherExecutable'
+            builtBy 'windows32SdkLauncherExecutable'
         }
     }
 }
 
 def getExeName(String name) {
-    return binaries.getByName(name).executableFile
+    // binaries will return a set of binaries
+    def binaries = executables.sdkLauncher.binaries.matching { it.name == name }
+    // calling .exeFile on the set returns an array with the result from each item in the set...
+    return binaries.executableFile.get(0)
 }
 
