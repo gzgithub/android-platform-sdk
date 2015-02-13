@@ -2,33 +2,35 @@ apply plugin: 'c'
 apply plugin: 'sdk-files'
 apply plugin: 'windows-setup'
 
-model {
-    components {
-        avdLauncher(NativeExecutableSpec) {
-            sources {
-                c {
-                    source {
-                        srcDir "src/source"
-                        include "**/*.c"
-                    }
-                }
+executables {
+    avdLauncher {}
+}
+
+sources {
+    avdLauncher {
+        c {
+            source {
+                srcDir "src/source"
+                include "**/*.c"
             }
-            targetPlatform "windows32"
         }
     }
 }
 
 sdk {
     windows {
-        item( { getExeName("avdLauncherExecutable") } ) {
+        item( { getExeName("windows32AvdLauncherExecutable") } ) {
             into 'lib'
             name 'AVD Manager.exe'
-            builtBy 'avdLauncherExecutable'
+            builtBy 'windows32AvdLauncherExecutable'
         }
     }
 }
 
 def getExeName(String name) {
-    return binaries.getByName(name).executableFile
+    // binaries will return a set of binaries
+    def binaries = executables.avdLauncher.binaries.matching { it.name == name }
+    // calling .exeFile on the set returns an array with the result from each item in the set...
+    return binaries.executableFile.get(0)
 }
 
