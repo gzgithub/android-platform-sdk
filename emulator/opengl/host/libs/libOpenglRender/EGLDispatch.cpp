@@ -16,7 +16,8 @@
 #include "EGLDispatch.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "osDynLibrary.h"
+
+#include "emugl/common/shared_library.h"
 
 EGLDispatch s_egl;
 
@@ -28,7 +29,7 @@ bool init_egl_dispatch()
     const char *libName = getenv("ANDROID_EGL_LIB");
     if (!libName) libName = DEFAULT_EGL_LIB;
 
-    osUtils::dynLibrary *lib = osUtils::dynLibrary::open(libName);
+    emugl::SharedLibrary *lib = emugl::SharedLibrary::open(libName);
     if (!lib) {
         printf("Failed to open %s\n", libName);
         return NULL;

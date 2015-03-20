@@ -5,7 +5,7 @@ host_common_LDLIBS :=
 
 ifeq ($(HOST_OS),linux)
     host_OS_SRCS = NativeLinuxSubWindow.cpp
-    host_common_LDLIBS += -lX11
+    host_common_LDLIBS += -lX11 -lrt
 endif
 
 ifeq ($(HOST_OS),darwin)
@@ -43,7 +43,7 @@ host_common_CFLAGS :=
 ### host libOpenglRender #################################################
 $(call emugl-begin-host-shared-library,libOpenglRender)
 
-$(call emugl-import,libGLESv1_dec libGLESv2_dec lib_renderControl_dec libOpenglCodecCommon libOpenglOsUtils)
+$(call emugl-import,libGLESv1_dec libGLESv2_dec lib_renderControl_dec libOpenglCodecCommon)
 
 LOCAL_LDLIBS += $(host_common_LDLIBS)
 
@@ -65,7 +65,7 @@ $(call emugl-end-module)
 ifdef EMUGL_BUILD_64BITS
     $(call emugl-begin-host64-shared-library,lib64OpenglRender)
 
-    $(call emugl-import,lib64GLESv1_dec lib64GLESv2_dec lib64_renderControl_dec lib64OpenglCodecCommon lib64OpenglOsUtils)
+    $(call emugl-import,lib64GLESv1_dec lib64GLESv2_dec lib64_renderControl_dec lib64OpenglCodecCommon)
 
     #LOCAL_LDFLAGS += -m64  # adding -m64 here doesn't work, because it somehow appear BEFORE -m32 in command-line.
     LOCAL_LDLIBS += $(host_common_LDLIBS) -m64  # Put -m64 it in LOCAL_LDLIBS instead.
