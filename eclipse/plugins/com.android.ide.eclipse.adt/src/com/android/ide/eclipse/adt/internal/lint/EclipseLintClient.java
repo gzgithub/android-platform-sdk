@@ -293,6 +293,19 @@ public class EclipseLintClient extends LintClient {
                     model.releaseFromRead();
                 }
             }
+
+            @Override
+            @NonNull
+            public Location getNameLocation(@NonNull XmlContext context, @NonNull Node node) {
+                return getLocation(context, node);
+            }
+
+            @Override
+            @NonNull
+            public Location getValueLocation(@NonNull XmlContext context, @NonNull Attr node) {
+                return getLocation(context, node);
+            }
+
         };
     }
 
