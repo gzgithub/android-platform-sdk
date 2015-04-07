@@ -69,7 +69,7 @@ def artifacts = [
         'commons-codec-1.4'                : 'commons-codec:commons-codec:1.4',
         'commons-compress-1.0'             : 'org.apache.commons:commons-compress:1.8.1',
         'commons-logging-1.1.1'            : 'commons-logging:commons-logging:1.1.1',
-        'easymock'                         : 'org.easymock:easymock:2.4',
+        'easymock'                         : 'org.easymock:easymock:3.3',
         'freemarker-2.3.20'                : 'org.freemarker:freemarker:2.3.20',
         'guava-17.0'                       : 'com.google.guava:guava:17.0',
         'host-libprotobuf-java-2.3.0-lite' : 'com.android.tools.external:libprotobuf-java-lite:2.3.0',
