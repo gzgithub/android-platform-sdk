@@ -50,11 +50,6 @@
                             <attachId>com.android.ide.eclipse.monitor.product</attachId>
                             <rootFolder>monitor</rootFolder>
                         </product>
-                        <product>
-                            <id>adtproduct</id>
-                            <attachId>adtproduct</attachId>
-                            <rootFolder>adt</rootFolder>
-                        </product>
                     </products>
                 </configuration>
             </plugin>
