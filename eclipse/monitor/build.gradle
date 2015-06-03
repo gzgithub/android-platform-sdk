@@ -1,6 +1,6 @@
 apply plugin: 'sdk-files'
 
-def basePath = "../../../out/host/maven/bundles-24.3.0-SNAPSHOT/products/"
+def basePath = "../../../out/host/maven/bundles-24.3.1-SNAPSHOT/products/"
 
 sdk {
     linux {
