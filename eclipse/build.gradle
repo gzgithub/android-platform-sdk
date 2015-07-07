@@ -9,10 +9,11 @@
 apply from: "../../tools/buildSrc/base/version.gradle"
 
 ext.outPath = System.env.OUT_DIR
-ext.outFile = new File(outPath)
-if (outPath == null) {
+if (outPath != null) {
+    ext.outFile = new File(outPath)
+} else {
     outPath = '../../out'
-    outFile = new File(projectDir, outPath)
+    ext.outFile = new File(projectDir, outPath)
 }
 
 repositories {
