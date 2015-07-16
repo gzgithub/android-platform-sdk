@@ -43,9 +43,7 @@ _adb() {
             *)
                 if [[ $where == OPT_SERIAL ]]; then
                     where=OPT_SERIAL_ARG
-                elif [[ $where == OPT_SERIAL_ARG ]]; then
                     serial=${cur}
-                    where=OPTIONS
                 else
                     where=COMMAND
                     break
