@@ -30,8 +30,7 @@ public class SystraceOutputParser {
     private static final String TRACE_START = "TRACE:\n"; //$NON-NLS-1$
 
     private final boolean mUncompress;
-    private final String mJs;
-    private final String mCss;
+    private final String mSystraceHtml;
     private final String mHtmlPrefix;
     private final String mHtmlSuffix;
 
@@ -42,14 +41,14 @@ public class SystraceOutputParser {
     /**
      * Constructs a atrace output parser.
      * @param compressedStream Is the input stream compressed using zlib?
-     * @param systraceJs systrace javascript content
-     * @param systraceCss systrace css content
+     * @param systraceHtml contents of systrace_trace_viewer.html
+     * @param htmlPrefix contents of prefix.html
+     * @param htmlSuffix contents of suffix.html
      */
-    public SystraceOutputParser(boolean compressedStream, String systraceJs, String systraceCss,
+    public SystraceOutputParser(boolean compressedStream, String systraceHtml,
             String htmlPrefix, String htmlSuffix) {
         mUncompress = compressedStream;
-        mJs = systraceJs;
-        mCss = systraceCss;
+        mSystraceHtml = systraceHtml;
         mHtmlPrefix = htmlPrefix;
         mHtmlSuffix = htmlSuffix;
     }
@@ -126,29 +125,18 @@ public class SystraceOutputParser {
             trace = new String(mAtraceOutput, mSystraceIndex, mAtraceLength - mSystraceIndex);
         }
 
-        // each line should end with the characters \n\ followed by a newline
-        String html_out = trace.replaceAll("\n", "\\\\n\\\\\n");
-        String header = String.format(mHtmlPrefix, mCss, mJs, "");
-        String footer = mHtmlSuffix;
-        return header + html_out + footer;
+        StringBuilder html = new StringBuilder(mHtmlPrefix.replace("{{SYSTRACE_TRACE_VIEWER_HTML}}", mSystraceHtml));
+        html.append("<!-- BEGIN TRACE -->\n");
+        html.append("  <script class=\"trace-data\" type=\"application/text\">\n");
+        html.append(trace);
+        html.append("  </script>\n<!-- END TRACE -->\n");
+        html.append(mHtmlSuffix);
+
+        return html.toString();
     }
 
-    public static String getJs(File assetsFolder) {
-        try {
-            return String.format("<script language=\"javascript\">%s</script>",
-                    Files.toString(new File(assetsFolder, "script.js"), Charsets.UTF_8));
-        } catch (IOException e) {
-            return "";
-        }
-    }
-
-    public static String getCss(File assetsFolder) {
-        try {
-            return String.format("<style type=\"text/css\">%s</style>",
-                    Files.toString(new File(assetsFolder, "style.css"), Charsets.UTF_8));
-        } catch (IOException e) {
-            return "";
-        }
+    public static String getSystraceHtml(File assetsFolder) {
+        return getHtmlTemplate(assetsFolder, "systrace_trace_viewer.html");
     }
 
     public static String getHtmlPrefix(File assetsFolder) {
