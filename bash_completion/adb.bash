@@ -208,7 +208,10 @@ _adb_cmd_shell() {
     i=$((i+1))
     case "$cur" in
         ls)
-            _adb_shell_ls $serial $i
+            _adb_shell_file_command $serial $i "--color -A -C -F -H -L -R -S -Z -a -c -d -f -h -i -k -l -m -n -p -q -r -s -t -u -x -1"
+            ;;
+        cat)
+            _adb_shell_file_command $serial $i "-h -e -t -u -v"
             ;;
         dumpsys)
             _adb_cmd_shell_dumpsys "$serial" $i
@@ -345,8 +348,8 @@ _adb_cmd_uninstall() {
     COMPREPLY=( ${COMPREPLY[@]:-} $(compgen -W "${packages}" -- "${cur}") )
 }
 
-_adb_shell_ls() {
-    local serial i cur file
+_adb_shell_file_command() {
+    local serial i cur file options
     local -a args
 
     serial=$1
@@ -354,6 +357,7 @@ _adb_shell_ls() {
     if [ "$serial" != "none" ]; then
         args=(-s $serial)
     fi
+    options=$3
 
     where=OPTIONS
     for ((; i <= COMP_CWORD; i++)); do
@@ -376,8 +380,8 @@ _adb_shell_ls() {
 
     case $where in
         OPTIONS)
-            COMPREPLY=( $(compgen -W "$OPTIONS" -- "$cur") )
-            _adb_util_list_files $serial "$file"
+            unset IFS
+            COMPREPLY=( $(compgen -W "$options" -- "$cur") )
             ;;
         FILE)
             _adb_util_list_files $serial "$file"
