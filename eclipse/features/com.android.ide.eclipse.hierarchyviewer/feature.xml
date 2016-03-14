@@ -2,7 +2,7 @@
 <feature
       id="com.android.ide.eclipse.hierarchyviewer.feature"
       label="Android Hierarchy Viewer"
-      version="25.0.10.qualifier"
+      version="25.0.11.qualifier"
       provider-name="The Android Open Source Project"
       plugin="com.android.ide.eclipse.hierarchyviewer">
 
