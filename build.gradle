@@ -15,10 +15,6 @@ sdk {
             into 'lib/emulator'
             notice 'emulator/NOTICE'
         }
-        item('emulator/skins/dynamic') {
-            into 'lib/emulator/skins/dynamic'
-            notice 'emulator/NOTICE'
-        }
 
         item('templates/build.template') {
             into 'lib'
