@@ -567,8 +567,25 @@ public class DeviceView extends ViewPart implements IUiSelectionListener, IClien
         }
     };
 
+    private final String[] mAssetSubdirPath = new String[] { "catapult", "systrace", "systrace" };
+    private File getSystraceAssetDir() {
+        File rootSystraceAssets = new File(DdmsPlugin.getPlatformToolsFolder(),
+                "systrace"); //$NON-NLS-1$
+        File systraceAssets = rootSystraceAssets;
+        for (String subdir : mAssetSubdirPath) {
+            File subDir = new File(systraceAssets, subdir);
+            if (subDir.isDirectory()) {
+                systraceAssets = subDir;
+            } else {
+                // can't find new directory layout, abort
+                return rootSystraceAssets;
+            }
+        }
+        return systraceAssets;
+    }
+
     private void launchSystrace(final IDevice device, final Shell parentShell) {
-        final File systraceAssets = new File(DdmsPlugin.getPlatformToolsFolder(), "systrace"); //$NON-NLS-1$
+        final File systraceAssets = getSystraceAssetDir();
         if (!systraceAssets.isDirectory()) {
             MessageDialog.openError(parentShell, "Systrace",
                     "Updated version of platform-tools (18.0.1 or greater) is required.\n"
