@@ -2,7 +2,7 @@
 <feature
       id="com.android.ide.eclipse.traceview.feature"
       label="Android Traceview"
-      version="25.1.4.qualifier"
+      version="25.1.5.qualifier"
       provider-name="The Android Open Source Project"
       plugin="com.android.ide.eclipse.traceview">
 
