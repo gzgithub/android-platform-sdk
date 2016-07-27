@@ -18,9 +18,7 @@ package com.android.ide.eclipse.monitor;
 
 import com.android.ide.eclipse.monitor.SdkToolsLocator.SdkInstallStatus;
 import com.android.prefs.AndroidLocation;
-import com.android.sdklib.SdkManager;
 import com.android.sdkstats.SdkStatsService;
-import com.android.sdkuilib.internal.repository.ui.AdtUpdateDialog;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
 
@@ -59,21 +57,6 @@ public class MonitorApplication implements IApplication {
             return Integer.valueOf(-1);
         }
         MonitorPlugin.getDefault().setSdkFolder(new File(sdkPath));
-
-        // install platform tools if necessary
-        ILogger sdkLog = NullLogger.getLogger();
-        SdkManager manager = SdkManager.createManager(sdkPath, sdkLog);
-        if (manager.getPlatformToolsVersion() == null) {
-            boolean install = MessageDialog.openQuestion(new Shell(display),
-                    "Monitor",
-                    "The platform tools package that provides adb is missing from your SDK installation. "
-                    + "Monitor requires this package to work properly. Would you like to install that package now?");
-            if (!install) {
-                return Integer.valueOf(-1);
-            }
-            AdtUpdateDialog window = new AdtUpdateDialog(new Shell(display), sdkLog, sdkPath);
-            window.installPlatformTools();
-        }
 
         // If this is the first time using ddms or adt, open up the stats service
         // opt out dialog, and request user for permissions.

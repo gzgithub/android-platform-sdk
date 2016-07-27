@@ -92,32 +92,6 @@
       </startup>
    </extension>
    <extension
-         point="org.eclipse.ui.actionSets">
-      <actionSet
-            id="monitor.actionSet.AvdSdkManager"
-            label="Android SDK and AVD Manager"
-            visible="true">
-            <action
-                class="com.android.ide.eclipse.monitor.actions.AvdManagerAction"
-                icon="images/avd_manager.png"
-                id="com.android.ide.eclipse.monitor.avdmanager"
-                label="Android Virtual Device Manager"
-                menubarPath="Window/additions"
-                style="push"
-                toolbarPath="android_project">
-            </action>
-            <action
-                class="com.android.ide.eclipse.monitor.actions.SdkManagerAction"
-                icon="images/sdk_manager.png"
-                id="com.android.ide.eclipse.monitor.sdkmanager"
-                label="Android SDK Manager"
-                menubarPath="Window/additions"
-                style="push"
-                toolbarPath="android_project">
-            </action>
-      </actionSet>
-   </extension>
-   <extension
          id="product"
          point="org.eclipse.core.runtime.products">
       <product

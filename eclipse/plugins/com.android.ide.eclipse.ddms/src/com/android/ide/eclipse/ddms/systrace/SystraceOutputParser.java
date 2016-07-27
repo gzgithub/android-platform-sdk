@@ -147,9 +147,29 @@ public class SystraceOutputParser {
         return getHtmlTemplate(assetsFolder, "suffix.html");
     }
 
+    // primary subdir in which to look for html assets
+    private static final String[] sAssetSubdirPath = new String[] { "catapult", "systrace", "systrace" };
+
     private static String getHtmlTemplate(File assetsFolder, String htmlFileName) {
         try {
-            return Files.toString(new File(assetsFolder, htmlFileName), Charsets.UTF_8);
+            // walk down the tree of subdirs, looking for the htmlFileName at any level
+
+            File searchFolder = assetsFolder;
+            File target = new File(searchFolder, htmlFileName);
+
+            if (!target.exists()) {
+                for (String subdir : sAssetSubdirPath) {
+                    searchFolder = new File(searchFolder, subdir);
+                    if (searchFolder.isDirectory()) {
+                        target = new File(searchFolder, htmlFileName);
+                        if (target.exists()) break;
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            return Files.toString(target, Charsets.UTF_8);
         } catch (IOException e) {
             return "";
         }

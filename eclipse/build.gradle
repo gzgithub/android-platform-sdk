@@ -63,7 +63,6 @@ def artifacts = [
         'sdk-common'          : "com.android.tools:sdk-common:$ext.baseVersion",
         'sdklib'              : "com.android.tools:sdklib:$ext.baseVersion",
         'sdkstats'            : "com.android.tools:sdkstats:$ext.baseVersion",
-        'sdkuilib'            : "com.android.tools:sdkuilib:$ext.baseVersion",
         'swtmenubar'          : "com.android.tools:swtmenubar:$ext.baseVersion",
         'testutils'           : "com.android.tools:testutils:$ext.baseVersion",
         'traceview'           : "com.android.tools:traceview:$ext.baseVersion",
@@ -79,7 +78,7 @@ def artifacts = [
         'commons-logging-1.1.1'            : 'commons-logging:commons-logging:1.1.1',
         'easymock'                         : 'org.easymock:easymock:3.3',
         'freemarker-2.3.20'                : 'org.freemarker:freemarker:2.3.20',
-        'guava-17.0'                       : 'com.google.guava:guava:17.0',
+        'guava-18.0'                       : 'com.google.guava:guava:18.0',
         'host-libprotobuf-java-2.3.0-lite' : 'com.android.tools.external:libprotobuf-java-lite:2.3.0',
         'httpclient-4.1.1'                 : 'org.apache.httpcomponents:httpclient:4.1.1',
         'httpcore-4.1'                     : 'org.apache.httpcomponents:httpcore:4.1',
@@ -104,7 +103,6 @@ dependencies {
 task copydeps << {
     // get the resolved dependencies from the compile configuration
     def resolvedDependencies = configurations.compile.resolvedConfiguration.firstLevelModuleDependencies
-
     // generate a map from "xy.jar" -> "/path/to/xy-1.0.jar"
     def artifactMap = [:]
     resolvedDependencies.each { dependency ->
