@@ -2,7 +2,7 @@
 <feature
       id="com.android.ide.eclipse.monitor.feature"
       label="Android Monitor"
-      version="25.2.1.qualifier"
+      version="25.2.2.qualifier"
       provider-name="The Android Open Source Project"
       plugin="com.android.ide.eclipse.monitor">
 
