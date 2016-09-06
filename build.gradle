@@ -67,6 +67,12 @@ sdk {
     }
 
     common(mac, linux) {
+        item('files/emulator_wrapper/emulator') {
+	    notice null
+	}
+        item('files/emulator_wrapper/emulator-check') {
+	    notice null
+	}
         item("$rootProject.projectDir.parentFile/prebuilts/tools/common/proguard/proguard4.7/bin/proguard.sh") {
             into 'proguard/bin'
             notice null
@@ -84,6 +90,12 @@ sdk {
     }
 
     windows {
+        item('files/emulator_wrapper/emulator.exe') {
+	    notice null
+	}
+        item('files/emulator_wrapper/emulator-check.exe') {
+	    notice null
+	}
         item("$rootProject.projectDir.parentFile/prebuilts/tools/common/proguard/proguard4.7/bin/proguard.bat") {
             into 'proguard/bin'
             notice null
