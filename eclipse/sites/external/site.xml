@@ -9,9 +9,6 @@
    <feature url="features/com.android.ide.eclipse.ddms_25.2.2.qualifier.jar" id="com.android.ide.eclipse.ddms" version="25.2.2.qualifier">
       <category name="developer"/>
    </feature>
-   <feature url="features/com.android.ide.eclipse.hierarchyviewer_25.2.2.qualifier.jar" id="com.android.ide.eclipse.hierarchyviewer" version="25.2.2.qualifier">
-      <category name="developer"/>
-   </feature>
    <feature url="features/com.android.ide.eclipse.traceview_25.2.2.qualifier.jar" id="com.android.ide.eclipse.traceview" version="25.2.2.qualifier">
       <category name="developer"/>
    </feature>

@@ -47,22 +47,15 @@ ext {
 // a mapping from the library names as used inside the plugin's MANIFEST.MF to the Maven artifact id
 def artifacts = [
         // tools/base and tools/swt dependencies
-        'manifest-merger'     : "com.android.tools.build:manifest-merger:$ext.baseVersion",
         'ddmlib'              : "com.android.tools.ddms:ddmlib:$ext.baseVersion",
         'ddmuilib'            : "com.android.tools.ddms:ddmuilib:$ext.baseVersion",
         'layoutlib-api'       : "com.android.tools.layoutlib:layoutlib-api:$ext.baseVersion",
-        'lint-api'            : "com.android.tools.lint:lint-api:$ext.baseVersion",
-        'lint-checks'         : "com.android.tools.lint:lint-checks:$ext.baseVersion",
-        'asset-studio'        : "com.android.tools:asset-studio:$ext.baseVersion",
         'annotations'         : "com.android.tools:annotations:$ext.baseVersion",
         'common'              : "com.android.tools:common:$ext.baseVersion",
         'dvlib'               : "com.android.tools:dvlib:$ext.baseVersion",
-        'hierarchyviewer2lib' : "com.android.tools:hierarchyviewer2lib:$ext.baseVersion",
-        'ninepatch'           : "com.android.tools:ninepatch:$ext.baseVersion",
         'rule-api'            : "com.android.tools:rule-api:$ext.baseVersion",
         'sdk-common'          : "com.android.tools:sdk-common:$ext.baseVersion",
         'sdklib'              : "com.android.tools:sdklib:$ext.baseVersion",
-        'sdkstats'            : "com.android.tools:sdkstats:$ext.baseVersion",
         'swtmenubar'          : "com.android.tools:swtmenubar:$ext.baseVersion",
         'testutils'           : "com.android.tools:testutils:$ext.baseVersion",
         'traceview'           : "com.android.tools:traceview:$ext.baseVersion",
@@ -134,6 +127,28 @@ task copydeps << {
             ant.copy(file: destName, tofile: new File(dest, it))
         }
     }
+}
+
+copydeps.dependsOn {
+  [
+    ":base:ddmlib:publishLocal",
+    ":swt:ddmuilib:publishLocal",
+    ":base:annotations:publishLocal",
+    ":base:common:publishLocal",
+    ":base:dvlib:publishLocal",
+    ":base:rule-api:publishLocal",
+    ":base:sdk-common:publishLocal",
+    ":base:sdklib:publishLocal",
+    ":swt:swtmenubar:publishLocal",
+    ":base:testutils:publishLocal",
+    ":swt:traceview:publishLocal",
+    ":base:layoutlib-api:publishLocal",
+    ":base:builder-test-api:publishLocal",
+    ":base:builder-model:publishLocal",
+    ":base:repository:publishLocal",
+    ":swt:uiautomatorviewer:publishLocal",
+    ":base:lint-api:publishLocal"
+  ]
 }
 
 // unzip eclipse prebuilts into the out folder to create a target platform for the build

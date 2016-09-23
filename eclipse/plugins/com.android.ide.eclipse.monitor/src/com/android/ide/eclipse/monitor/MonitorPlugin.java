@@ -16,8 +16,6 @@
 
 package com.android.ide.eclipse.monitor;
 
-import com.android.sdkstats.DdmsPreferenceStore;
-
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;

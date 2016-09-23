@@ -10,10 +10,6 @@
       <category name="developer"/>
       <category name="platform"/>
    </feature>
-   <feature url="features/com.android.ide.eclipse.hierarchyviewer_25.2.2.qualifier.jar" id="com.android.ide.eclipse.hierarchyviewer" version="25.2.2.qualifier">
-      <category name="developer"/>
-      <category name="platform"/>
-   </feature>
    <feature url="features/com.android.ide.eclipse.tests_25.2.2.qualifier.jar" id="com.android.ide.eclipse.tests" version="25.2.2.qualifier">
       <category name="test"/>
    </feature>

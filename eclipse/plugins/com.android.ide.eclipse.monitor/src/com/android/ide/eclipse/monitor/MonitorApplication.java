@@ -18,7 +18,6 @@ package com.android.ide.eclipse.monitor;
 
 import com.android.ide.eclipse.monitor.SdkToolsLocator.SdkInstallStatus;
 import com.android.prefs.AndroidLocation;
-import com.android.sdkstats.SdkStatsService;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
 
@@ -58,11 +57,6 @@ public class MonitorApplication implements IApplication {
         }
         MonitorPlugin.getDefault().setSdkFolder(new File(sdkPath));
 
-        // If this is the first time using ddms or adt, open up the stats service
-        // opt out dialog, and request user for permissions.
-        // Note that the actual ping is performed in MonitorStartup
-        SdkStatsService stats = new SdkStatsService();
-        stats.checkUserPermissionForPing(new Shell(display));
 
         // open up RCP
         try {

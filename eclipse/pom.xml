@@ -75,13 +75,11 @@
         <module>plugins/com.android.ide.eclipse.base</module>
         <module>plugins/com.android.ide.eclipse.ddms</module>
         <module>plugins/com.android.ide.eclipse.gldebugger</module>
-        <module>plugins/com.android.ide.eclipse.hierarchyviewer</module>
         <module>plugins/com.android.ide.eclipse.monitor</module>
         <module>plugins/com.android.ide.eclipse.traceview</module>
 
         <module>features/com.android.ide.eclipse.ddms</module>
         <module>features/com.android.ide.eclipse.gldebugger</module>
-        <module>features/com.android.ide.eclipse.hierarchyviewer</module>
         <module>features/com.android.ide.eclipse.traceview</module>
         <module>features/com.android.ide.eclipse.monitor</module>
 

@@ -37,7 +37,6 @@
    <features>
       <feature id="com.android.ide.eclipse.ddms.feature"/>
       <feature id="com.android.ide.eclipse.gldebugger.feature"/>
-      <feature id="com.android.ide.eclipse.hierarchyviewer.feature"/>
       <feature id="com.android.ide.eclipse.traceview.feature"/>
       <feature id="com.android.ide.eclipse.monitor.feature"/>
       <feature id="org.eclipse.rcp"/>
