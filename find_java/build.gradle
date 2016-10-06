@@ -2,46 +2,49 @@ apply plugin: 'cpp'
 apply plugin: 'sdk-files'
 apply plugin: 'windows-setup'
 
-executables {
-    findJava {}
-}
-
-sources {
-    findJava {
+model {
+  components {
+    findjava(NativeExecutableSpec) {
+      targetPlatform 'windows32'
+      targetPlatform 'windows64'
+      sources {
         cpp {
-            source {
-                srcDir "src/source"
-                include "**/*.cpp"
-            }
+          source {
+            srcDir 'src/source'
+            include '**/*.cpp'
+          }
         }
+      }
+      binaries.withType(NativeExecutableBinarySpec) { binary ->
+        linker.args '-static'
+        project.sdk {
+          windows {
+            item(binary.executableFile) {
+              into 'lib'
+              name (binary.targetPlatform.getName() == 'windows32' ?
+                        'find_java32.exe' : 'find_java64.exe')
+              notice 'NOTICE'
+            }
+          }
+        }
+      }
     }
+  }
+
+  tasks {
+    // This is sort of a hack, since we're referencing this task directly. But otherwise
+    // it doesn't seem like there's any good way to set the dependencies.
+    copyWinSdkToolsFiles {
+      dependsOn $.binaries
+    }
+  }
 }
 
 sdk {
-    windows {
-        item( { getExeName("windows32FindJavaExecutable") } ) {
-            into 'lib'
-            name 'find_java32.exe'
-            builtBy 'windows32FindJavaExecutable'
-            notice 'NOTICE'
-        }
-        item( { getExeName("windows64FindJavaExecutable") } ) {
-            into 'lib'
-            name 'find_java64.exe'
-            builtBy 'windows64FindJavaExecutable'
-            notice 'NOTICE'
-        }
-        item('find_java.bat') {
-            into 'lib'
-            notice 'NOTICE'
-        }
+  windows {
+    item('find_java.bat') {
+      into 'lib'
+      notice 'NOTICE'
     }
+  }
 }
-
-def getExeName(String name) {
-    // binaries will return a set of binaries
-    def binaries = executables.findJava.binaries.matching { it.name == name }
-    // calling .exeFile on the set returns an array with the result from each item in the set...
-    return binaries.executableFile.get(0)
-}
-
