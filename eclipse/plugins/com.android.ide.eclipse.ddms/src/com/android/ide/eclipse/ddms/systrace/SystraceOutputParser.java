@@ -29,6 +29,7 @@ import java.util.zip.Inflater;
 public class SystraceOutputParser {
     private static final String TRACE_START = "TRACE:\n"; //$NON-NLS-1$
 
+    private final boolean mHasCrLf;
     private final boolean mUncompress;
     private final String mSystraceHtml;
     private final String mHtmlPrefix;
@@ -40,13 +41,22 @@ public class SystraceOutputParser {
 
     /**
      * Constructs a atrace output parser.
+     * @param apiLevel api level of device
      * @param compressedStream Is the input stream compressed using zlib?
      * @param systraceHtml contents of systrace_trace_viewer.html
      * @param htmlPrefix contents of prefix.html
      * @param htmlSuffix contents of suffix.html
      */
-    public SystraceOutputParser(boolean compressedStream, String systraceHtml,
+    public SystraceOutputParser(String apiLevel,
+            boolean compressedStream, String systraceHtml,
             String htmlPrefix, String htmlSuffix) {
+        int api;
+        try {
+            api = Integer.parseInt(apiLevel);
+        } catch (NumberFormatException e) {
+            api = 1;
+        }
+        mHasCrLf = api < 24; // Starting with N/API 24, adb does not introduce \r
         mUncompress = compressedStream;
         mSystraceHtml = systraceHtml;
         mHtmlPrefix = htmlPrefix;
@@ -61,7 +71,9 @@ public class SystraceOutputParser {
         mAtraceOutput = atraceOutput;
         mAtraceLength = atraceOutput.length;
 
-        removeCrLf();
+        if (mHasCrLf) {
+            removeCrLf();
+        }
 
         // locate the trace start marker within the first hundred bytes
         String header = new String(mAtraceOutput, 0, Math.min(100, mAtraceLength));
