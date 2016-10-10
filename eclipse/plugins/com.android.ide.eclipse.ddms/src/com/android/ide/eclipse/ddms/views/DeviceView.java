@@ -668,6 +668,7 @@ public class DeviceView extends ViewPart implements IUiSelectionListener, IClien
 
                     monitor.setTaskName("Saving trace information");
                     SystraceOutputParser parser = new SystraceOutputParser(
+                            device.getProperty(IDevice.PROP_BUILD_API_LEVEL),
                             COMPRESS_DATA,
                             SystraceOutputParser.getSystraceHtml(systraceAssets),
                             SystraceOutputParser.getHtmlPrefix(systraceAssets),
