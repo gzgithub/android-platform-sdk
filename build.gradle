@@ -66,13 +66,32 @@ sdk {
         }
     }
 
-    common(mac, linux) {
+    linux {
+        item('files/emulator_wrapper/mksdcard') {
+            notice null
+        }
         item('files/emulator_wrapper/emulator') {
-	    notice null
-	}
+            notice null
+        }
         item('files/emulator_wrapper/emulator-check') {
-	    notice null
-	}
+            notice null
+        }
+    }
+    mac {
+        item('files/emulator_wrapper/mksdcard-mac') {
+            name 'mksdcard'
+            notice null
+        }
+        item('files/emulator_wrapper/emulator-mac') {
+            name 'emulator'
+            notice null
+        }
+        item('files/emulator_wrapper/emulator-check-mac') {
+            name 'emulator-check'
+            notice null
+        }
+    }
+    common(linux, mac) {
         item("$rootProject.projectDir.parentFile/prebuilts/tools/common/proguard/proguard4.7/bin/proguard.sh") {
             into 'proguard/bin'
             notice null
@@ -91,11 +110,11 @@ sdk {
 
     windows {
         item('files/emulator_wrapper/emulator.exe') {
-	    notice null
-	}
+            notice null
+        }
         item('files/emulator_wrapper/emulator-check.exe') {
-	    notice null
-	}
+            notice null
+        }
         item("$rootProject.projectDir.parentFile/prebuilts/tools/common/proguard/proguard4.7/bin/proguard.bat") {
             into 'proguard/bin'
             notice null
