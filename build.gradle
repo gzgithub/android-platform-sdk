@@ -2,10 +2,6 @@ apply plugin: 'sdk-files'
 
 sdk {
     common {
-        item('files/tools_source.properties') {
-            name 'source.properties'
-            notice null
-        }
         item('files/plugin.prop') {
             into 'lib'
             notice null
