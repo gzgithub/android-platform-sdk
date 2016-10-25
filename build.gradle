@@ -2,6 +2,10 @@ apply plugin: 'sdk-files'
 
 sdk {
     common {
+        item('files/sdkmanager/lib') {
+	    into 'lib'
+	    notice null
+	}
         item('files/tools_source.properties') {
             name 'source.properties'
             notice null
@@ -110,6 +114,10 @@ sdk {
     }
 
     common(mac, linux) {
+        item("files/sdkmanager/bin/sdkmanager") {
+            into 'bin'
+            notice null
+        }
         item("$rootProject.projectDir.parentFile/prebuilts/tools/common/proguard/proguard4.7/bin/proguard.sh") {
             into 'proguard/bin'
             notice null
@@ -127,6 +135,10 @@ sdk {
     }
 
     windows {
+        item("files/sdkmanager/bin/sdkmanager.bat") {
+            into 'bin'
+            notice null
+        }
         item("$rootProject.projectDir.parentFile/prebuilts/tools/common/proguard/proguard4.7/bin/proguard.bat") {
             into 'proguard/bin'
             notice null
