@@ -1,7 +1,7 @@
 @if "%DEBUG%" == "" @echo off
 @rem ##########################################################################
 @rem
-@rem  sdklib startup script for Windows
+@rem  sdkmanager startup script for Windows
 @rem
 @rem ##########################################################################
 
@@ -13,8 +13,8 @@ if "%DIRNAME%" == "" set DIRNAME=.
 set APP_BASE_NAME=%~n0
 set APP_HOME=%DIRNAME%..
 
-@rem Add default JVM options here. You can also use JAVA_OPTS and SDKLIB_OPTS to pass JVM options to this script.
-set DEFAULT_JVM_OPTS=
+@rem Add default JVM options here. You can also use JAVA_OPTS and SDKMANAGER_OPTS to pass JVM options to this script.
+set DEFAULT_JVM_OPTS="-Dcom.android.sdklib.toolsdir=%~dp0\.."
 
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome
@@ -71,17 +71,17 @@ set CMD_LINE_ARGS=%$
 
 set CLASSPATH=%APP_HOME%\lib\sdklib-25.3.0-dev.jar;%APP_HOME%\lib\layoutlib-api-25.3.0-dev.jar;%APP_HOME%\lib\dvlib-25.3.0-dev.jar;%APP_HOME%\lib\repository-25.3.0-dev.jar;%APP_HOME%\lib\gson-2.2.4.jar;%APP_HOME%\lib\commons-compress-1.8.1.jar;%APP_HOME%\lib\httpclient-4.1.1.jar;%APP_HOME%\lib\httpmime-4.1.jar;%APP_HOME%\lib\common-25.3.0-dev.jar;%APP_HOME%\lib\kxml2-2.3.0.jar;%APP_HOME%\lib\annotations-25.3.0-dev.jar;%APP_HOME%\lib\annotations-12.0.jar;%APP_HOME%\lib\jimfs-1.1.jar;%APP_HOME%\lib\httpcore-4.1.jar;%APP_HOME%\lib\commons-logging-1.1.1.jar;%APP_HOME%\lib\commons-codec-1.4.jar;%APP_HOME%\lib\guava-18.0.jar
 
-@rem Execute sdklib
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SDKLIB_OPTS%  -classpath "%CLASSPATH%" com.android.sdklib.tool.SdkManagerCli %CMD_LINE_ARGS%
+@rem Execute sdkmanager
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SDKMANAGER_OPTS%  -classpath "%CLASSPATH%" com.android.sdklib.tool.SdkManagerCli %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell
 if "%ERRORLEVEL%"=="0" goto mainEnd
 
 :fail
-rem Set variable SDKLIB_EXIT_CONSOLE if you need the _script_ return code instead of
+rem Set variable SDKMANAGER_EXIT_CONSOLE if you need the _script_ return code instead of
 rem the _cmd.exe /c_ return code!
-if  not "" == "%SDKLIB_EXIT_CONSOLE%" exit 1
+if  not "" == "%SDKMANAGER_EXIT_CONSOLE%" exit 1
 exit /b 1
 
 :mainEnd
