@@ -109,6 +109,9 @@ sdk {
     }
 
     windows {
+        item('files/emulator_wrapper/mksdcard.exe') {
+            notice null
+        }
         item('files/emulator_wrapper/emulator.exe') {
             notice null
         }
