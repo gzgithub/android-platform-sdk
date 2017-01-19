@@ -306,13 +306,13 @@ public final class DdmsPlugin extends AbstractUIPlugin implements IDeviceChangeL
                     for (IToolsLocator locator : locators) {
                         try {
                             String adbLocation = locator.getAdbLocation();
-                            String traceviewLocation = locator.getTraceViewLocation();
+                            String monitorLocation = locator.getMonitorLocation();
                             String hprofConvLocation = locator.getHprofConvLocation();
-                            if (adbLocation != null && traceviewLocation != null &&
+                            if (adbLocation != null && monitorLocation != null &&
                                     hprofConvLocation != null) {
                                 // checks if the location is valid.
                                 if (setToolsLocation(adbLocation, hprofConvLocation,
-                                        traceviewLocation)) {
+                                        monitorLocation)) {
 
                                     AndroidDebugBridge.createBridge(sAdbLocation,
                                             true /* forceNewBridge */);
@@ -506,11 +506,11 @@ public final class DdmsPlugin extends AbstractUIPlugin implements IDeviceChangeL
      * Stores the adb location. This returns true if the location is an existing file.
      */
     private static boolean setToolsLocation(String adbLocation, String hprofConvLocation,
-            String traceViewLocation) {
+            String monitorViewLocation) {
 
         File adb = new File(adbLocation);
         File hprofConverter = new File(hprofConvLocation);
-        File traceview = new File(traceViewLocation);
+        File monitor = new File(monitorViewLocation);
 
         String missing = "";
         if (adb.isFile() == false) {
@@ -519,8 +519,8 @@ public final class DdmsPlugin extends AbstractUIPlugin implements IDeviceChangeL
         if (hprofConverter.isFile() == false) {
             missing += hprofConverter.getAbsolutePath() + " ";
         }
-        if (traceview.isFile() == false) {
-            missing += traceview.getAbsolutePath() + " ";
+        if (monitor.isFile() == false) {
+            missing += monitor.getAbsolutePath() + " ";
         }
 
         if (missing.length() > 0) {
@@ -533,9 +533,8 @@ public final class DdmsPlugin extends AbstractUIPlugin implements IDeviceChangeL
 
         sAdbLocation = adbLocation;
         sHprofConverter = hprofConverter.getAbsolutePath();
-        DdmUiPreferences.setTraceviewLocation(traceview.getAbsolutePath());
 
-        sToolsFolder = traceview.getParent();
+        sToolsFolder = monitor.getParent();
 
         return true;
     }
@@ -546,9 +545,9 @@ public final class DdmsPlugin extends AbstractUIPlugin implements IDeviceChangeL
      * @param startAdb flag to start adb
      */
     public static void setToolsLocation(String adbLocation, boolean startAdb,
-            String hprofConvLocation, String traceViewLocation) {
+            String hprofConvLocation, String monitorViewLocation) {
 
-        if (setToolsLocation(adbLocation, hprofConvLocation, traceViewLocation)) {
+        if (setToolsLocation(adbLocation, hprofConvLocation, monitorViewLocation)) {
             // starts the server in a thread in case this is blocking.
             if (startAdb) {
                 new Thread() {

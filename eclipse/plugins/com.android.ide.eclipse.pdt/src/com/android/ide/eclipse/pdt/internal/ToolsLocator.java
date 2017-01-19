@@ -35,7 +35,7 @@ public class ToolsLocator implements IToolsLocator {
     }
 
     @Override
-    public String getTraceViewLocation() {
-        return PdtPlugin.getTraceViewLocation();
+    public String getMonitorLocation() {
+        return PdtPlugin.getMonitorLocation();
     }
 }

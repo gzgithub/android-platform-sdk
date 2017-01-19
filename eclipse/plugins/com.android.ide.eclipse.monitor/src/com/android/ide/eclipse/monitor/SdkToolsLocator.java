@@ -44,7 +44,7 @@ public class SdkToolsLocator {
                     ".bat" : ""; //$NON-NLS-1$
 
     public static final String FN_HPROF_CONV = "hprof-conv" + PLATFORM_EXECUTABLE_EXTENSION; //$NON-NLS-1$
-    public static final String FN_TRACEVIEW = "traceview" + PLATFORM_SCRIPT_EXTENSION; //$NON-NLS-1$
+    public static final String FN_MONITOR = "monitor" + PLATFORM_SCRIPT_EXTENSION; //$NON-NLS-1$
 
     private final File mSdkFolder;
 
@@ -56,8 +56,8 @@ public class SdkToolsLocator {
         return new File(getSdkPlatformToolsFolder(), SdkConstants.FN_ADB).getAbsolutePath();
     }
 
-    public String getTraceViewLocation() {
-        return new File(getSdkToolsFolder(), FN_TRACEVIEW).getAbsolutePath();
+    public String getMonitorLocation() {
+        return new File(getSdkToolsFolder(), FN_MONITOR).getAbsolutePath();
     }
 
     public String getHprofConvLocation() {
@@ -74,7 +74,7 @@ public class SdkToolsLocator {
 
     public SdkInstallStatus isValidInstallation() {
         List<String> executables = Arrays.asList(
-                getTraceViewLocation(),
+                getMonitorLocation(),
                 getHprofConvLocation());
 
         for (String exe : executables) {

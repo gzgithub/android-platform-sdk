@@ -3,12 +3,12 @@
     <classpathentry exported="true" kind="lib" path="libs/annotations.jar" sourcepath="/annotations"/>
 	<classpathentry exported="true" kind="lib" path="libs/dvlib.jar" sourcepath="/dvlib"/>
 	<classpathentry exported="true" kind="lib" path="libs/common.jar" sourcepath="/common"/>
-	<classpathentry exported="true" kind="lib" path="libs/commons-codec-1.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/commons-codec-1.6.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/commons-compress-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/commons-logging-1.1.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="libs/guava-18.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="libs/httpclient-4.1.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="libs/httpcore-4.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/guava-19.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/httpclient-4.2.6.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/httpcore-4.2.5.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/kxml2-2.3.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/layoutlib-api.jar" sourcepath="/layoutlib-api"/>
 	<classpathentry exported="true" kind="lib" path="libs/sdklib.jar" sourcepath="/sdklib"/>

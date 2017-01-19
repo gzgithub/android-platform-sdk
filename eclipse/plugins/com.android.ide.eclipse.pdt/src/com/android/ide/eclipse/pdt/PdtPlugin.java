@@ -55,7 +55,7 @@ public class PdtPlugin extends AbstractUIPlugin {
                 if (PrefPage.PREFS_DEVTREE_DIR.equals(event.getProperty())) {
                     // restart adb, in case it's a different version
                     DdmsPlugin.setToolsLocation(getAdbLocation(), true /* startAdb */,
-                            getHprofConvLocation(), getTraceViewLocation());
+                            getHprofConvLocation(), getMonitorLocation());
                 }
             }
         });
@@ -105,13 +105,13 @@ public class PdtPlugin extends AbstractUIPlugin {
     }
 
     /**
-     * Returns the location of traceview or <code>null</code> if unknown.
+     * Returns the location of monitor or <code>null</code> if unknown.
      */
-    public static String getTraceViewLocation() {
+    public static String getMonitorLocation() {
         String devTreeBin = getDevTreeOutBin();
 
         if (devTreeBin != null && devTreeBin.length() > 0) {
-            return devTreeBin + "traceview"; //$NON-NLS-1$
+            return devTreeBin + "monitor"; //$NON-NLS-1$
         }
 
         return null;

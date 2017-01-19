@@ -28,10 +28,10 @@ public interface IToolsLocator {
     String getAdbLocation();
 
     /**
-     * Queries the location of Traceview
+     * Queries the location of Monitor
      * @return A full OS path to the location of traceview
      */
-    String getTraceViewLocation();
+    String getMonitorLocation();
 
     /**
      * Queries the location of hprof-conv
