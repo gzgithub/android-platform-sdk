@@ -1,4 +1,0 @@
-A dumb way to trigger emulator build
-emu-master-dev buildbots are all based on CLs.
-manually change this file to trigger a new build
-trigger=1
