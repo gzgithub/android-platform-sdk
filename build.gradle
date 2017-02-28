@@ -88,6 +88,9 @@ sdk {
         }
     }
     common(linux, mac) {
+        item('files/android') {
+            notice null
+        }
         item("$rootProject.projectDir.parentFile/prebuilts/tools/common/proguard/proguard4.7/bin/proguard.sh") {
             into 'proguard/bin'
             notice null
@@ -105,6 +108,9 @@ sdk {
     }
 
     windows {
+        item('files/android.bat') {
+            notice null
+        }
         item('files/emulator_wrapper/mksdcard.exe') {
             notice null
         }
